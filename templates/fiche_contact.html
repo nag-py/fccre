@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if contact %}Modifier{% else %}Nouvelle{% endif %} Fiche Contact - Suivi Rénovation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.min.css">
+    <style>
+        .contact-card {
+            transition: all 0.3s ease;
+        }
+        .contact-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        textarea {
+            min-height: 100px;
+        }
+        .compact-input {
+            max-width: 100px;
+        }
+        .ts-control {
+            min-height: 42px;
+            padding: 8px;
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db;
+        }
+        .ts-control:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 1px #3b82f6;
+        }
+        .ts-dropdown {
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Header -->
+        <header class="mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">{% if contact %}Modifier{% else %}Nouvelle{% endif %} Fiche Contact</h1>
+                    <p class="text-gray-600 mt-2">Formulaire de suivi des demandes de rénovation</p>
+                </div>
+                <a href="{{ url_for('index') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md transition duration-300 flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour à la liste
+                </a>
+            </div>
+        </header>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="mb-4 p-4 rounded-md {% if category == 'success' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Main Form -->
+        <form method="POST" action="{{ url_for('modifier_contact', contact_id=contact.id) if contact else url_for('nouveau_contact') }}" enctype="multipart/form-data">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <!-- Address Section -->
+                <section class="mb-8">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-blue-100 p-2 rounded-full mr-3">
+                            <i class="fas fa-map-marker-alt text-blue-600"></i>
+                        </div>
+                        <h2 class="text-xl font-semibold text-gray-800">Adresse complète</h2>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Rue</label>
+                            <select id="street-select" name="rue" class="w-full">
+                                <option value="">Sélectionner une rue</option>
+    				{% for rue in rues %}
+        			<option value="{{ rue }}" {% if rue_preselec == rue %}selected{% endif %}>{{ rue }}</option>
+    				{% endfor %}
+			    </select>
+                        </div>
+                        
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Numéro</label>
+                                <input type="text" name="numero" value="{{ contact.numero if contact else '' }}" class="compact-input w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Étage/Boîte</label>
+                                <input type="text" name="etage_boite" value="{{ contact.etage_boite if contact else '0' }}" class="compact-input w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            
+                            <div class="flex-1 min-w-[180px]">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Zone</label>
+                                <select id="zone-select" name="zones" multiple>
+                                    {% set zones = contact.zones.split(',') if contact and contact.zones else [] %}
+                                    <option value="CQD" {% if contact and 'CQD' in zones %}selected{% endif %}>CQD</option>
+                                    <option value="CACI" {% if contact and 'CACI' in zones %}selected{% endif %}>CACI</option>
+                                    <option value="ZRU" {% if contact and 'ZRU' in zones %}selected{% endif %}>ZRU</option>
+                                    <option value="ZICHEE" {% if contact and 'ZICHEE' in zones %}selected{% endif %}>ZICHEE</option>
+                                    <option value="CRU" {% if contact and 'CRU' in zones %}selected{% endif %}>CRU</option>
+                                    <option value="hors_zone" {% if contact and 'hors_zone' in zones %}selected{% endif %}>Hors zone</option>
+                                    <option value="inconnu" {% if contact and 'inconnu' in zones %}selected{% endif %}>Inconnu</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Contact Information Section -->
+                <section class="mb-8">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-green-100 p-2 rounded-full mr-3">
+                            <i class="fas fa-user text-green-600"></i>
+                        </div>
+                        <h2 class="text-xl font-semibold text-gray-800">Informations du contact</h2>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nom - Prénom</label>
+                            <input type="text" name="nom_prenom" value="{{ contact.nom_prenom if contact else '' }}" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                            <input type="text" name="telephone" value="{{ contact.telephone if contact else '' }}" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <input type="email" name="email" value="{{ contact.email if contact else '' }}" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Origine</label>
+                            <select name="origine" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Sélectionner une origine</option>
+				<option value="deja_venu" {% if contact and contact.origine == 'deja_venu' %}selected{% endif %}>Déjà venu</option>
+				<option value="bouche_a_oreilles" {% if contact and contact.origine == 'bouche_a_oreilles' %}selected{% endif %}>Bouche à oreilles</option>
+				<option value="site_web" {% if contact and contact.origine == 'site_web' %}selected{% endif %}>Site web</option>
+				<option value="service_communal" {% if contact and contact.origine == 'service_communal' %}selected{% endif %}>Service communal</option>
+				<option value="region" {% if contact and contact.origine == 'region' %}selected{% endif %}>Région</option>
+				<option value="fonds_du_logement" {% if contact and contact.origine == 'fonds_du_logement' %}selected{% endif %}>Fonds du logement</option>
+				<option value="homegrade" {% if contact and contact.origine == 'homegrade' %}selected{% endif %}>Homegrade</option>
+				<option value="actions_locales" {% if contact and contact.origine == 'actions_locales' %}selected{% endif %}>Actions locales</option>
+				<option value="reseau_habitat" {% if contact and contact.origine == 'reseau_habitat' %}selected{% endif %}>Réseau Habitat</option>
+				<option value="tissu_associatif" {% if contact and contact.origine == 'tissu_associatif' %}selected{% endif %}>Tissu associatif</option>
+				<option value="inconnu" {% if contact and contact.origine == 'inconnu' %}selected{% endif %}>Inconnu</option>
+                            
+			    </select>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Housing Information Section -->
+                <section class="mb-8">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-purple-100 p-2 rounded-full mr-3">
+                            <i class="fas fa-home text-purple-600"></i>
+                        </div>
+                        <h2 class="text-xl font-semibold text-gray-800">Informations logement</h2>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                            <select name="statut" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Sélectionner un statut</option>
+                            	<option value="occupant" {% if contact and contact.statut == 'occupant' %}selected{% endif %}>Propriétaire occupant</option>
+				<option value="occupant_bailleur" {% if contact and contact.statut == 'occupant_bailleur' %}selected{% endif %}>Propriétaire occupant + bailleur</option>
+				<option value="bailleur" {% if contact and contact.statut == 'bailleur' %}selected{% endif %}>Propriétaire bailleur</option>
+				<option value="locataire" {% if contact and contact.statut == 'locataire' %}selected{% endif %}>Locataire</option>
+				<option value="autre" {% if contact and contact.statut == 'autre' %}selected{% endif %}>Autre</option>
+				<option value="inconnu" {% if contact and contact.statut == 'inconnu' %}selected{% endif %}>Inconnu</option>
+
+			    </select>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="futur" name="futur" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" {% if contact and contact.futur %}checked{% endif %}>
+                            <label for="futur" class="ml-2 block text-sm text-gray-700">Futur ?</label>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Type de bien</label>
+                            <select name="type_bien" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Sélectionner un type</option>
+                            	<option value="maison unifamiliale" {% if contact and contact.type_bien == 'maison unifamiliale' %}selected{% endif %}>Maison unifamiliale</option>
+				<option value="maison divisée" {% if contact and contact.type_bien == 'maison divisée' %}selected{% endif %}>Maison divisée</option>
+				<option value="immeuble à appartements" {% if contact and contact.type_bien == 'immeuble à appartements' %}selected{% endif %}>Immeuble à appartements</option>
+				<option value="autres" {% if contact and contact.type_bien == 'autres' %}selected{% endif %}>Autres</option>
+				<option value="inconnu" {% if contact and contact.type_bien == 'inconnu' %}selected{% endif %}>Inconnu</option>
+
+			    </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Copropriété</label>
+                            <select id="copropriete-select" name="copropriete" multiple>
+                                {% set coproprietes = contact.copropriete.split(',') if contact and contact.copropriete else [] %}
+                                <option value="oui" {% if contact and 'oui' in coproprietes %}selected{% endif %}>Oui</option>
+                                <option value="non" {% if contact and 'non' in coproprietes %}selected{% endif %}>Non</option>
+                                <option value="inconnu" {% if contact and 'inconnu' in coproprietes %}selected{% endif %}>Inconnu</option>
+			        <option value="Enregistrée" {% if contact and 'Enregistrée' in coproprietes %}selected{% endif %}>Enregistrée</option>
+				<option value="Syndic Volontaire" {% if contact and 'Syndic Volontaire' in coproprietes %}selected{% endif %}>Syndic Volontaire</option>
+				<option value="Syndic Pro" {% if contact and 'Syndic Pro' in coproprietes %}selected{% endif %}>Syndic Pro</option>
+				<option value="Sans Syndic" {% if contact and 'Sans Syndic' in coproprietes %}selected{% endif %}>Sans Syndic</option>
+
+			   </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nb unités</label>
+                            <input type="number" name="nb_unites" min="0" value="{{ contact.nb_unites if contact else '0' }}" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Total unités</label>
+                            <input type="number" name="total_unites" min="0" value="{{ contact.total_unites if contact else '0' }}" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Personal Situation Section -->
+                <section class="mb-8">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-yellow-100 p-2 rounded-full mr-3">
+                            <i class="fas fa-euro-sign text-yellow-600"></i>
+                        </div>
+                        <h2 class="text-xl font-semibold text-gray-800">Situation personnelle</h2>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Revenus</label>
+                            <select name="revenus" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Sélectionner une tranche</option>
+                           	<option value="bas_revenus" {% if contact and contact.revenus == 'bas_revenus' %}selected{% endif %}>Bas revenus</option>
+				<option value="moyens_revenus" {% if contact and contact.revenus == 'moyens_revenus' %}selected{% endif %}>Moyens revenus</option>
+				<option value="hauts_revenus" {% if contact and contact.revenus == 'hauts_revenus' %}selected{% endif %}>Hauts revenus</option>
+				<option value="autres" {% if contact and contact.revenus == 'autres' %}selected{% endif %}>Autres</option>
+				<option value="inconnu" {% if contact and contact.revenus == 'inconnu' %}selected{% endif %}>Inconnu</option>
+
+			    </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Composition familiale</label>
+                            <select name="composition_familiale" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Sélectionner</option>
+                             	<option value="isolé sans pers. à charge" {% if contact and contact.composition_familiale == 'isolé sans pers. à charge' %}selected{% endif %}>Isolé sans pers. à charge</option>
+				<option value="isolé avec pers. à charge" {% if contact and contact.composition_familiale == 'isolé avec pers. à charge' %}selected{% endif %}>Isolé avec pers. à charge</option>
+				<option value="non-isolé sans pers. à charge" {% if contact and contact.composition_familiale == 'non-isolé sans pers. à charge' %}selected{% endif %}>Non-isolé sans pers. à charge</option>
+				<option value="non-isolé avec pers. à charge" {% if contact and contact.composition_familiale == 'non-isolé avec pers. à charge' %}selected{% endif %}>Non-isolé avec pers. à charge</option>
+				<option value="autres" {% if contact and contact.composition_familiale == 'autres' %}selected{% endif %}>Autres</option>
+				<option value="inconnu" {% if contact and contact.composition_familiale == 'inconnu' %}selected{% endif %}>Inconnu</option>
+
+			    </select>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="famille_nombreuse" name="famille_nombreuse" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" {% if contact and contact.famille_nombreuse %}checked{% endif %}>
+                            <label for="famille_nombreuse" class="ml-2 block text-sm text-gray-700">Famille nombreuse</label>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="fracture_numerique" name="fracture_numerique" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" {% if contact and contact.fracture_numerique %}checked{% endif %}>
+                            <label for="fracture_numerique" class="ml-2 block text-sm text-gray-700">Fracture numérique</label>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Request and Work Section -->
+                <section class="mb-8">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-red-100 p-2 rounded-full mr-3">
+                            <i class="fas fa-tools text-red-600"></i>
+                        </div>
+                        <h2 class="text-xl font-semibold text-gray-800">Demande et travaux</h2>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Demande initiale</label>
+                            <select name="demande_initiale" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Sélectionner une demande</option>
+                           	<option value="Primes en général" {% if contact and contact.demande_initiale == 'Primes en général' %}selected{% endif %}>Primes en général</option>
+				<option value="Primes RENOLUTION" {% if contact and contact.demande_initiale == 'Primes RENOLUTION' %}selected{% endif %}>Primes RENOLUTION</option>
+				<option value="Primes communales" {% if contact and contact.demande_initiale == 'Primes communales' %}selected{% endif %}>Primes communales</option>
+				<option value="Prime petit patrimoine" {% if contact and contact.demande_initiale == 'Prime petit patrimoine' %}selected{% endif %}>Prime petit patrimoine</option>
+				<option value="Prime gas.be" {% if contact and contact.demande_initiale == 'Prime gas.be' %}selected{% endif %}>Prime gas.be</option>
+				<option value="Questions fiscales" {% if contact and contact.demande_initiale == 'Questions fiscales' %}selected{% endif %}>Questions fiscales</option>
+				<option value="Questions amélioration énergétique du bâtiment" {% if contact and contact.demande_initiale == 'Questions amélioration énergétique du bâtiment' %}selected{% endif %}>Questions amélioration énergétique du bâtiment</option>
+				<option value="Questions usage énergie" {% if contact and contact.demande_initiale == 'Questions usage énergie' %}selected{% endif %}>Questions usage énergie</option>
+				<option value="Questions techniques" {% if contact and contact.demande_initiale == 'Questions techniques' %}selected{% endif %}>Questions techniques</option>
+				<option value="Questions urbanisme" {% if contact and contact.demande_initiale == 'Questions urbanisme' %}selected{% endif %}>Questions urbanisme</option>
+				<option value="Questions sociales juridiques" {% if contact and contact.demande_initiale == 'Questions sociales juridiques' %}selected{% endif %}>Questions sociales juridiques</option>
+				<option value="Questions acquisition vente" {% if contact and contact.demande_initiale == 'Questions acquisition vente' %}selected{% endif %}>Questions acquisition vente</option>
+				<option value="Questions insalubrité Code Bxl Logement" {% if contact and contact.demande_initiale == 'Questions insalubrité Code Bxl Logement' %}selected{% endif %}>Questions insalubrité Code Bxl Logement</option>
+				<option value="Questions prêts" {% if contact and contact.demande_initiale == 'Questions prêts' %}selected{% endif %}>Questions prêts</option>
+				<option value="Questions écologiques" {% if contact and contact.demande_initiale == 'Questions écologiques' %}selected{% endif %}>Questions écologiques</option>
+				<option value="Questions copro" {% if contact and contact.demande_initiale == 'Questions copro' %}selected{% endif %}>Questions copro</option>
+				<option value="Questions patrimoine" {% if contact and contact.demande_initiale == 'Questions patrimoine' %}selected{% endif %}>Questions patrimoine</option>
+				<option value="Question économie circulaire" {% if contact and contact.demande_initiale == 'Question économie circulaire' %}selected{% endif %}>Question économie circulaire</option>
+				<option value="Auto rénovation" {% if contact and contact.demande_initiale == 'Auto rénovation' %}selected{% endif %}>Auto rénovation</option>
+				<option value="Certificat PEB" {% if contact and contact.demande_initiale == 'Certificat PEB' %}selected{% endif %}>Certificat PEB</option>
+				<option value="Autres demandes" {% if contact and contact.demande_initiale == 'Autres demandes' %}selected{% endif %}>Autres demandes</option>
+				<option value="inconnu" {% if contact and contact.demande_initiale == 'inconnu' %}selected{% endif %}>Inconnu</option>
+
+			    </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Thématiques abordées</label>
+                            <select id="thematiques-select" name="thematiques" multiple>
+                                {% set thematiques = contact.thematiques.split(',') if contact and contact.thematiques else [] %}
+                            	<option value="Primes RENOLUTION" {% if contact and 'Primes RENOLUTION' in thematiques %}selected{% endif %}>Primes RENOLUTION</option>
+				<option value="Primes communales" {% if contact and 'Primes communales' in thematiques %}selected{% endif %}>Primes communales</option>
+				<option value="Prime petit patrimoine" {% if contact and 'Prime petit patrimoine' in thematiques %}selected{% endif %}>Prime petit patrimoine</option>
+				<option value="Prime gas.be" {% if contact and 'Prime gas.be' in thematiques %}selected{% endif %}>Prime gas.be</option>
+				<option value="Questions fiscales" {% if contact and 'Questions fiscales' in thematiques %}selected{% endif %}>Questions fiscales</option>
+				<option value="Réductions fiscales" {% if contact and 'Réductions fiscales' in thematiques %}selected{% endif %}>Réductions fiscales</option>
+				<option value="Questions amélioration énergétique du bâtiment" {% if contact and 'Questions amélioration énergétique du bâtiment' in thematiques %}selected{% endif %}>Questions amélioration énergétique du bâtiment</option>
+				<option value="Questions usage énergie" {% if contact and 'Questions usage énergie' in thematiques %}selected{% endif %}>Questions usage énergie</option>
+				<option value="Questions techniques" {% if contact and 'Questions techniques' in thematiques %}selected{% endif %}>Questions techniques</option>
+				<option value="Questions urbanisme" {% if contact and 'Questions urbanisme' in thematiques %}selected{% endif %}>Questions urbanisme</option>
+				<option value="Questions sociales juridiques" {% if contact and 'Questions sociales juridiques' in thematiques %}selected{% endif %}>Questions sociales juridiques</option>
+				<option value="Questions acquisition vente" {% if contact and 'Questions acquisition vente' in thematiques %}selected{% endif %}>Questions acquisition vente</option>
+				<option value="Questions d'insalubrité Code Bxl Logement" {% if contact and 'Questions insalubrité Code Bxl Logement' in thematiques %}selected{% endif %}>Questions insalubrité Code Bxl Logement</option>
+				<option value="Questions prêts" {% if contact and 'Questions prêts' in thematiques %}selected{% endif %}>Questions prêts</option>
+				<option value="Questions écologiques" {% if contact and 'Questions écologiques' in thematiques %}selected{% endif %}>Questions écologiques</option>
+				<option value="Questions copro" {% if contact and 'Questions copro' in thematiques %}selected{% endif %}>Questions copro</option>
+				<option value="Questions patrimoine" {% if contact and 'Questions patrimoine' in thematiques %}selected{% endif %}>Questions patrimoine</option>
+				<option value="Question économie circulaire" {% if contact and 'Question économie circulaire' in thematiques %}selected{% endif %}>Question économie circulaire</option>
+				<option value="Questions auto rénovation" {% if contact and 'Questions auto rénovation' in thematiques %}selected{% endif %}>Questions auto rénovation</option>
+				<option value="Certificat PEB" {% if contact and 'Certificat PEB' in thematiques %}selected{% endif %}>Certificat PEB</option>
+				<option value="Autres demandes" {% if contact and 'Autres demandes' in thematiques %}selected{% endif %}>Autres demandes</option>
+
+			    </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Type de travaux</label>
+                            <select id="travaux-select" name="type_travaux" multiple>
+                                {% set type_travaux = contact.type_travaux.split(',') if contact and contact.type_travaux else [] %}
+                            	<option value="Stabilité" {% if contact and 'Stabilité' in type_travaux %}selected{% endif %}>Stabilité</option>
+				<option value="Toiture" {% if contact and 'Toiture' in type_travaux %}selected{% endif %}>Toiture</option>
+				<option value="Ventilation : tout type" {% if contact and 'Ventilation : tout type' in type_travaux %}selected{% endif %}>Ventilation : tout type</option>
+				<option value="Humidité mérule" {% if contact and 'Humidité mérule' in type_travaux %}selected{% endif %}>Humidité mérule</option>
+				<option value="Gaz Electricité" {% if contact and 'Gaz Electricité' in type_travaux %}selected{% endif %}>Gaz Electricité</option>
+				<option value="Isolation thermique" {% if contact and 'Isolation thermique' in type_travaux %}selected{% endif %}>Isolation thermique</option>
+				<option value="Isolation acoustique" {% if contact and 'Isolation acoustique' in type_travaux %}selected{% endif %}>Isolation acoustique</option>
+				<option value="Enduit Bardages" {% if contact and 'Enduit Bardages' in type_travaux %}selected{% endif %}>Enduit Bardages</option>
+				<option value="Châssis" {% if contact and 'Châssis' in type_travaux %}selected{% endif %}>Châssis</option>
+				<option value="Sanitaires Plomberie" {% if contact and 'Sanitaires Plomberie' in type_travaux %}selected{% endif %}>Sanitaires Plomberie</option>
+				<option value="Chauffage" {% if contact and 'Chauffage' in type_travaux %}selected{% endif %}>Chauffage</option>
+				<option value="Protection Incendie" {% if contact and 'Protection Incendie' in type_travaux %}selected{% endif %}>Protection Incendie</option>
+				<option value="Adaptation PMR" {% if contact and 'Adaptation PMR' in type_travaux %}selected{% endif %}>Adaptation PMR</option>
+				<option value="Aménagements intérieurs parachèvement" {% if contact and 'Aménagements intérieurs parachèvement' in type_travaux %}selected{% endif %}>Aménagements intérieurs parachèvement</option>
+				<option value="Parachèvement" {% if contact and 'Parachèvement' in type_travaux %}selected{% endif %}>Parachèvement</option>
+				<option value="Citernes" {% if contact and 'Citernes' in type_travaux %}selected{% endif %}>Citernes</option>
+				<option value="Suivi architecte" {% if contact and 'Suivi architecte' in type_travaux %}selected{% endif %}>Suivi architecte</option>
+				<option value="Audits études" {% if contact and 'Audits études' in type_travaux %}selected{% endif %}>Audits /études</option>
+				<option value="Façade avant" {% if contact and 'Façade avant' in type_travaux %}selected{% endif %}>Façade avant</option>
+				<option value="Énergies renouvelables" {% if contact and 'Énergies renouvelables' in type_travaux %}selected{% endif %}>Énergies renouvelables</option>
+				<option value="Toiture verte" {% if contact and 'Toiture verte' in type_travaux %}selected{% endif %}>Toiture verte</option>
+				<option value="Matériaux naturels" {% if contact and 'Matériaux naturels' in type_travaux %}selected{% endif %}>Matériaux naturels</option>
+				<option value="Égoûts" {% if contact and 'Égoûts' in type_travaux %}selected{% endif %}>Égoûts</option>
+				<option value="Perméabilisation des sols" {% if contact and 'Perméabilisation des sols' in type_travaux %}selected{% endif %}>Perméabilisation des sols</option>
+				<option value="Inconnu" {% if contact and 'Inconnu' in type_travaux %}selected{% endif %}>Inconnu</option>
+				<option value="Autres" {% if contact and 'Autres' in type_travaux %}selected{% endif %}>Autres</option>
+
+			    </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Primes introduites</label>
+                            <select id="primes-select" name="primes_introduites" multiple>
+                                {% set primes = contact.primes_introduites.split(',') if contact and contact.primes_introduites else [] %}
+                            	<option value="Rénolution" {% if contact and 'Rénolution' in primes %}selected{% endif %}>Rénolution</option>
+				<option value="PPP" {% if contact and 'PPP' in primes %}selected{% endif %}>PPP</option>
+				<option value="Gas.be" {% if contact and 'Gas.be' in primes %}selected{% endif %}>Gas.be</option>
+
+			    </select>
+                        </div>
+                    </div>
+
+
+                </section>
+
+                <!-- Contact History Section -->
+                <section class="mb-8">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-indigo-100 p-2 rounded-full mr-3">
+                            <i class="fas fa-history text-indigo-600"></i>
+                        </div>
+                        <h2 class="text-xl font-semibold text-gray-800">Historique des contacts</h2>
+                    </div>
+                    
+                    <!-- Add Contact Form -->
+                    <div id="contacts-section" class="bg-gray-50 p-4 rounded-lg mb-6">
+                        <h3 class="text-lg font-medium text-gray-800 mb-3">Ajouter un contact</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                <input type="date" name="date_contact" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Type de contact</label>
+                                <select name="type_contact" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Sélectionner un type</option>
+                                <option value="A Permanence">A Permanence</option>
+				<option value="P Permanence">P Permanence</option>
+				<option value="A Bureau">A Bureau</option>
+				<option value="P Bureau">P Bureau</option>
+				<option value="A Sur place visite">A Sur place visite</option>
+				<option value="P Sur place visite">P Sur place visite</option>
+				<option value="A Contact quartier">A Contact quartier</option>
+				<option value="P Contact quartier">P Contact quartier</option>
+				<option value="A Téléphone">A Téléphone</option>
+				<option value="P Téléphone">P Téléphone</option>
+				<option value="A Mail">A Mail</option>
+				<option value="P Mail">P Mail</option>
+
+				</select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Intervention(s) réalisée(s)</label>
+                                <select id="interventions-select" name="interventions" multiple>
+                                <option value="Infos aides financières">Infos aides financières</option>
+				<option value="Visite technique du logement">Visite technique du logement</option>
+				<option value="Rapport de visite">Rapport de visite</option>
+				<option value="Avant-projet (esquisse)">Avant-projet (esquisse)</option>
+				<option value="Conseils techniques fournis">Conseils techniques fournis</option>
+				<option value="Description des travaux">Description des travaux</option>
+				<option value="Estimation coûts travaux">Estimation coûts travaux</option>
+				<option value="Analyse de documents techniques">Analyse de documents techniques</option>
+				<option value="Estimation primes">Estimation primes</option>
+				<option value="Aide introduction dossier prime">Aide introduction dossier prime</option>
+				<option value="Aide introduction dossier prêt">Aide introduction dossier prêt</option>
+				<option value="envoi vers asbl du Réseau Habitat">envoi vers asbl du Réseau Habitat</option>
+				<option value="envoi vers architecte  géomètre  ingénieur syndic">envoi vers architecte géomètre ingénieur syndic</option>
+				<option value="envoi vers AIS">envoi vers AIS</option>
+				<option value="envoi vers service communal CPAS">envoi vers service communal CPAS</option>
+				<option value="envoi vers autres services">envoi vers autres services</option>
+				<option value="envoi vers Homegrade">envoi vers Homegrade</option>
+				<option value="envoi vers service soutien numérique">envoi vers service soutien numérique</option>
+				<option value="Suivi dossiers primes">Suivi dossiers primes</option>
+				<option value="Suivi ECORENO">Suivi ECORENO</option>
+				<option value="Fonds du logement CPAS autre">Fonds du logement CPAS autre</option>
+				<option value="Contact architecte syndic">Contact architecte syndic</option>
+				<option value="Contact entrepreneur">Contact entrepreneur</option>
+				<option value="Accompagnement chantier">Accompagnement chantier</option>
+				<option value="Accompagnement urbanistique / PU">Accompagnement urbanistique / PU</option>
+				<option value="Accompagnement énergie">Accompagnement énergie</option>
+				<option value="Accompagnement social juridique">Accompagnement social juridique</option>
+				<option value="Accompagnement copro">Accompagnement copro</option>
+				<option value="Accompagnement numérique urbanistique">Accompagnement numérique urbanistique</option>
+				<option value="Accompagnement numérique primes">Accompagnement numérique primes</option>
+				<option value="Autres accompagnements numériques">Autres accompagnements numériques</option>
+				<option value="Contact Homegrade">Contact Homegrade</option>
+				<option value="Autre">Autre</option>
+
+				</select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Commentaire</label>
+                            <textarea name="commentaire" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                       <div class="mb-4">
+    <label class="block text-sm font-medium text-gray-700 mb-1">Fichiers joints</label>
+    <input type="file" name="fichiers" multiple class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+    <p class="text-xs text-gray-500 mt-1">Formats acceptés: PDF, Word, images, etc.</p>
+</div>
+			</div>
+                    </div>
+                    
+                    <!-- Contacts List -->
+                    <div id="contacts-list" class="space-y-4">
+                        {% if contact and contact.historique_contacts %}
+                            {% for hc in contact.historique_contacts %}
+                                <div class="contact-card bg-white p-4 rounded-lg shadow border border-gray-200">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div>
+                                            <span class="font-medium">{{ hc.date.strftime('%d/%m/%Y') }}</span>
+                                            <span class="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">{{ hc.type_contact }}</span>
+                                        </div>
+                                        <form action="{{ url_for('supprimer_historique', historique_id=hc.id) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette entrée d\'historique?');" class="inline">
+                                            <button type="submit" class="text-red-500 hover:text-red-700">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                    <div class="mb-2">
+                                        <span class="text-sm font-medium">Interventions:</span>
+                                        <div class="flex flex-wrap gap-1 mt-1">
+                                            {% set interventions = hc.interventions.split(',') if hc.interventions else [] %}
+                                            {% for int in interventions %}
+                                                <span class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">{{ int }}</span>
+                                            {% endfor %}
+                                        </div>
+					{% if hc.fichiers %}
+					<div class="mt-2">
+					    <span class="text-sm font-medium">Fichiers joints:</span>
+					    <div class="flex flex-wrap gap-2 mt-1">
+						{% for fichier in hc.fichiers %}
+						<a href="{{ url_for('telecharger_fichier', fichier_id=fichier.id) }}"
+						   class="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full flex items-center hover:bg-blue-100 transition">
+						    <i class="fas fa-file mr-1"></i>{{ fichier.nom_fichier }}
+						</a>
+						{% endfor %}
+					    </div>
+					</div>
+					{% endif %}
+                                    </div>
+                                    <div>
+                                        <span class="text-sm font-medium">Commentaire:</span>
+                                        <p class="text-gray-600 text-sm mt-1">{{ hc.commentaire or 'Aucun commentaire' }}</p>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-gray-500 italic text-center">Aucun historique de contact disponible</p>
+                        {% endif %}
+                    </div>
+                </section>
+
+                <!-- Save Button -->
+                <div class="flex justify-end">
+                    <button type="submit" id="save-btn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-medium transition duration-300 flex items-center">
+                        <i class="fas fa-save mr-2"></i>Enregistrer la fiche
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+    <script>
+        
+
+        // Initialize multiselect controls
+	new TomSelect('select[name="rue"]', {
+    		create: false,
+    		sortField: {
+        	field: "text",
+        	direction: "asc"
+    		},
+    		searchField: 'text'
+	});
+        const multiSelectOptions = {
+            plugins: ['remove_button'],
+            create: false,
+            maxItems: null,
+            placeholder: 'Sélectionner...',
+            hideSelected: true
+        };
+
+        new TomSelect('#zone-select', multiSelectOptions);
+        new TomSelect('#copropriete-select', multiSelectOptions);
+        new TomSelect('#thematiques-select', multiSelectOptions);
+        new TomSelect('#travaux-select', multiSelectOptions);
+        new TomSelect('#primes-select', multiSelectOptions);
+        new TomSelect('#interventions-select', multiSelectOptions);
+    </script>
+    
+  
+
+</body>
+</html>
