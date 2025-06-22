@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liste des Contacts - Suivi Rénovation</title>
+    <title>Fiche Stat V2025</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -11,8 +11,8 @@
     <div class="container mx-auto px-4 py-8 max-w-screen-lg">
         <!-- Header -->
         <header class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-800">Liste des Contacts - Suivi Rénovation</h1>
-            <p class="text-gray-600 mt-2">Gestion des demandes de rénovation</p>
+	    <h1 class="text-3xl font-bold text-gray-800">La Rue asbl - Fiche Stat V2025</h1>
+            <p class="text-gray-600 mt-2">Liste contacts CRE</p>
         </header>
 
         <!-- Flash Messages -->
@@ -48,23 +48,23 @@
     <div class="bg-white p-4 rounded shadow-md">
         <h2 class="text-lg font-semibold mb-2">📊 Statistiques 2025</h2>
         <ul class="text-sm text-gray-700 space-y-1">
-            <li>🟩 Fiches ouvertes : <strong>{{ stats.fiches_ouvertes_2025 }}</strong></li>
-            <li>🟦 Fiches réouvertes : <strong>{{ stats.fiches_reouvertes_2025 }}</strong></li>
-            <li>🟠 Contacts "A..." : <strong>{{ stats.contacts_A_2025 }}</strong></li>
-            <li>🟣 Contacts "P..." : <strong>{{ stats.contacts_P_2025 }}</strong></li>
-            <li>🏆 Top 3 type_contact :
+            <li>🟩 Nouveaux dossiers : <strong>{{ stats.fiches_ouvertes_2025 }}</strong></li>
+            <li>🟦 Réouverts : <strong>{{ stats.fiches_reouvertes_2025 }}</strong></li>
+            <li>🟠 Contacts "Avec" : <strong>{{ stats.contacts_A_2025 }}</strong></li>
+            <li>🟣 Contacts "Pour" : <strong>{{ stats.contacts_P_2025 }}</strong></li>
+            <li>📝 Type de contacts :
                 <ul class="ml-4 list-disc">
                     {% for item, count in stats.top_type_contacts %}
                         <li>{{ item }} ({{ count }})</li>
                     {% endfor %}
                 </ul>
             </li>
-            <li>🔧 Interventions 2025 : <strong>{{ stats.interventions_2025 }}</strong></li>
-            <li>🏅 Top 3 interventions :
+            <li>🔧 Top 3 - Interventions :
                 <ul class="ml-4 list-disc">
                     {% for item, count in stats.top_interventions %}
                         <li>{{ item }} ({{ count }})</li>
                     {% endfor %}
+		    <li>Au total :  <strong>{{ stats.interventions_2025 }}</strong></li>
                 </ul>
             </li>
         </ul>
@@ -73,23 +73,23 @@
     <!-- Colonne 2 et 3 à ajouter ici plus tard -->
     <!-- Colonne 2 -->
 <div class="bg-white p-4 rounded shadow-md">
-    <h2 class="text-lg font-semibold mb-2">📌 Données par catégorie</h2>
+    <h2 class="text-lg font-semibold mb-2">📌 Demandes</h2>
     <ul class="text-sm text-gray-700 space-y-1">
-        <li>📋 Top demandes initiales :
+        <li>📋 Demandes initiales :
             <ul class="ml-4 list-disc">
                 {% for item, count in stats.top_demandes %}
                     <li>{{ item }} ({{ count }})</li>
                 {% endfor %}
             </ul>
         </li>
-        <li>🧩 Top thématiques :
+        <li>🧩 Thématiques :
             <ul class="ml-4 list-disc">
                 {% for item, count in stats.top_thematiques %}
                     <li>{{ item }} ({{ count }})</li>
                 {% endfor %}
             </ul>
         </li>
-        <li>🔨 Top types de travaux :
+        <li>🔨 Types de travaux :
             <ul class="ml-4 list-disc">
                 {% for item, count in stats.top_travaux %}
                     <li>{{ item }} ({{ count }})</li>
@@ -101,9 +101,9 @@
 
 <!-- Colonne 3 -->
 <div class="bg-white p-4 rounded shadow-md">
-    <h2 class="text-lg font-semibold mb-2">📂 Autres indicateurs</h2>
+    <h2 class="text-lg font-semibold mb-2">📂 Situation</h2>
     <ul class="text-sm text-gray-700 space-y-1">
-        <li>📊 Top statuts :
+        <li>📊 Statut :
             <ul class="ml-4 list-disc">
                 {% for item, count in stats.top_statuts %}
                     <li>{{ item }} ({{ count }})</li>

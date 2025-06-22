@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, sen
 from sqlalchemy import func, extract
 from models import db, Contact, HistoriqueContact, FichierHistorique
 import os
-from datetime import datetime
+from datetime import datetime, time
 from werkzeug.utils import secure_filename
 import json
 
@@ -13,7 +13,7 @@ ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png',
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Limite à 16 MB
+app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # Limite à 16 MB
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///renovation.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'votre_cle_secrete'
@@ -363,6 +363,12 @@ def modifier_contact(contact_id):
             )
             db.session.add(historique)
             db.session.commit()
+                # ✅ Mettre à jour date_creation si la date d’historique est plus ancienne
+            hist_dt = datetime.combine(historique.date, time.min)
+            if contact.date_creation is None or hist_dt < contact.date_creation:
+                contact.date_creation = hist_dt
+                db.session.commit()
+
             # AJOUTER CETTE PARTIE POUR GERER LES FICHIERS
             if 'fichiers' in request.files:
                 fichiers = request.files.getlist('fichiers')
@@ -388,6 +394,9 @@ def modifier_contact(contact_id):
         flash('Contact mis à jour avec succès!', 'success')
         return redirect(url_for('index'))
     
+    # Trier les historiques du plus récent au plus ancien
+    contact.historique_contacts = sorted(contact.historique_contacts, key=lambda h: h.date, reverse=True)
+
     return render_template('fiche_contact.html', contact=contact, rues=rues, rue_preselec=contact.rue)        
     
 
