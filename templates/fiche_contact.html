@@ -500,26 +500,126 @@
                     <div id="contacts-list" class="space-y-4">
                         {% if contact and contact.historique_contacts %}
                             {% for hc in contact.historique_contacts %}
-                                <div class="contact-card bg-white p-4 rounded-lg shadow border border-gray-200">
+                                <div class="contact-card bg-white p-4 rounded-lg shadow border border-gray-200 w-full">
                                     <div class="flex justify-between items-start mb-2">
                                         <div>
                                             <span class="font-medium">{{ hc.date.strftime('%d/%m/%Y') }}</span>
                                             <span class="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">{{ hc.type_contact }}</span>
                                         </div>
-                                        <form action="{{ url_for('supprimer_historique', historique_id=hc.id) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette entrée d\'historique?');" class="inline">
-                                            <button type="submit" class="text-red-500 hover:text-red-700">
-                                                <i class="fas fa-trash"></i>
+                                        <div class="flex space-x-2">
+                                            <button type="button" onclick="toggleEditMode(this)" class="text-blue-500 hover:text-blue-700">
+                                                <i class="fas fa-edit"></i>
                                             </button>
+                                            <form action="{{ url_for('supprimer_historique', historique_id=hc.id) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette entrée d\'historique?');" class="inline">
+                                                <button type="submit" class="text-red-500 hover:text-red-700">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <div class="view-mode">
+                                        <div class="mb-2">
+                                            <span class="text-sm font-medium">Interventions:</span>
+                                            <div class="flex flex-wrap gap-1 mt-1">
+                                            {% if hc.interventions %}
+                                                {% set interventions = hc.interventions.split(',') if hc.interventions else [] %}
+                                                {% for int in interventions %}
+                                                    <span class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">{{ int }}</span>
+                                                {% endfor %}
+                                            {% else %}
+                                                <span class="text-gray-500 text-xs">Aucune intervention</span>
+                                            {% endif %}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span class="text-sm font-medium">Commentaire:</span>
+                                            <p class="text-gray-600 text-sm mt-1">{{ hc.commentaire or 'Aucun commentaire' }}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="edit-mode hidden bg-gray-50 p-4 rounded-lg mt-2">
+                                        <form method="POST" action="{{ url_for('modifier_historique', historique_id=hc.id) }}" enctype="multipart/form-data">
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                                <div>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                                    <input type="date" name="date" value="{{ hc.date.strftime('%Y-%m-%d') }}" 
+                                                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                                                </div>
+                                                
+                                                <div>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">Type de contact</label>
+                                                    <select name="type_contact" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                                                        <option value="">Sélectionner un type</option>
+                                                        <option value="A Permanence" {% if hc.type_contact == 'A Permanence' %}selected{% endif %}>A Permanence</option>
+                                                        <option value="P Permanence" {% if hc.type_contact == 'P Permanence' %}selected{% endif %}>P Permanence</option>
+                                                        <option value="A Bureau" {% if hc.type_contact == 'A Bureau' %}selected{% endif %}>A Bureau</option>
+                                                        <option value="P Bureau" {% if hc.type_contact == 'P Bureau' %}selected{% endif %}>P Bureau</option>
+                                                        <option value="A Sur place visite" {% if hc.type_contact == 'A Sur place visite' %}selected{% endif %}>A Sur place visite</option>
+                                                        <option value="P Sur place visite" {% if hc.type_contact == 'P Sur place visite' %}selected{% endif %}>P Sur place visite</option>
+                                                        <option value="A Téléphone" {% if hc.type_contact == 'A Téléphone' %}selected{% endif %}>A Téléphone</option>
+                                                        <option value="P Téléphone" {% if hc.type_contact == 'P Téléphone' %}selected{% endif %}>P Téléphone</option>
+                                                        <option value="A Mail" {% if hc.type_contact == 'A Mail' %}selected{% endif %}>A Mail</option>
+                                                        <option value="P Mail" {% if hc.type_contact == 'P Mail' %}selected{% endif %}>P Mail</option>
+                                                        <option value="NULL" {% if hc.type_contact == 'NULL' %}selected{% endif %}>NULL</option>
+                                                    </select>
+                                                </div>
+                                                
+                                                    <div>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-1">Intervention(s) réalisée(s)</label>
+                                                        <select name="interventions" multiple class="w-full interventions-edit-select">
+                                                            {% set current_interventions = hc.interventions.split(',') if hc.interventions else [] %}
+                                                            <option value="Infos aides financières" {% if 'Infos aides financières' in current_interventions %}selected{% endif %}>Infos aides financières</option>
+                                                            <option value="Visite technique du logement" {% if 'Visite technique du logement' in current_interventions %}selected{% endif %}>Visite technique du logement</option>
+                                                            <option value="Rapport de visite" {% if 'Rapport de visite' in current_interventions %}selected{% endif %}>Rapport de visite</option>
+                                                            <option value="Avant-projet (esquisse)" {% if 'Avant-projet (esquisse)' in current_interventions %}selected{% endif %}>Avant-projet (esquisse)</option>
+                                                            <option value="Conseils techniques fournis" {% if 'Conseils techniques fournis' in current_interventions %}selected{% endif %}>Conseils techniques fournis</option>
+                                                            <option value="Description des travaux" {% if 'Description des travaux' in current_interventions %}selected{% endif %}>Description des travaux</option>
+                                                            <option value="Estimation coûts travaux" {% if 'Estimation coûts travaux' in current_interventions %}selected{% endif %}>Estimation coûts travaux</option>
+                                                            <option value="Analyse de documents techniques" {% if 'Analyse de documents techniques' in current_interventions %}selected{% endif %}>Analyse de documents techniques</option>
+                                                            <option value="Estimation primes" {% if 'Estimation primes' in current_interventions %}selected{% endif %}>Estimation primes</option>
+                                                            <option value="Aide introduction dossier prime" {% if 'Aide introduction dossier prime' in current_interventions %}selected{% endif %}>Aide introduction dossier prime</option>
+                                                            <option value="Aide introduction dossier prêt" {% if 'Aide introduction dossier prêt' in current_interventions %}selected{% endif %}>Aide introduction dossier prêt</option>
+                                                            <option value="envoi vers asbl du Réseau Habitat" {% if 'envoi vers asbl du Réseau Habitat' in current_interventions %}selected{% endif %}>envoi vers asbl du Réseau Habitat</option>
+                                                            <option value="envoi vers architecte géomètre ingénieur syndic" {% if 'envoi vers architecte géomètre ingénieur syndic' in current_interventions %}selected{% endif %}>envoi vers architecte géomètre ingénieur syndic</option>
+                                                            <option value="envoi vers AIS" {% if 'envoi vers AIS' in current_interventions %}selected{% endif %}>envoi vers AIS</option>
+                                                            <option value="envoi vers service communal CPAS" {% if 'envoi vers service communal CPAS' in current_interventions %}selected{% endif %}>envoi vers service communal CPAS</option>
+                                                            <option value="envoi vers autres services" {% if 'envoi vers autres services' in current_interventions %}selected{% endif %}>envoi vers autres services</option>
+                                                            <option value="envoi vers Homegrade" {% if 'envoi vers Homegrade' in current_interventions %}selected{% endif %}>envoi vers Homegrade</option>
+                                                            <option value="envoi vers service soutien numérique" {% if 'envoi vers service soutien numérique' in current_interventions %}selected{% endif %}>envoi vers service soutien numérique</option>
+                                                            <option value="Suivi dossiers primes" {% if 'Suivi dossiers primes' in current_interventions %}selected{% endif %}>Suivi dossiers primes</option>
+                                                            <option value="Suivi ECORENO" {% if 'Suivi ECORENO' in current_interventions %}selected{% endif %}>Suivi ECORENO</option>
+                                                            <option value="Fonds du logement CPAS autre" {% if 'Fonds du logement CPAS autre' in current_interventions %}selected{% endif %}>Fonds du logement CPAS autre</option>
+                                                            <option value="Contact architecte syndic" {% if 'Contact architecte syndic' in current_interventions %}selected{% endif %}>Contact architecte syndic</option>
+                                                            <option value="Contact entrepreneur" {% if 'Contact entrepreneur' in current_interventions %}selected{% endif %}>Contact entrepreneur</option>
+                                                            <option value="Accompagnement chantier" {% if 'Accompagnement chantier' in current_interventions %}selected{% endif %}>Accompagnement chantier</option>
+                                                            <option value="Accompagnement urbanistique / PU" {% if 'Accompagnement urbanistique / PU' in current_interventions %}selected{% endif %}>Accompagnement urbanistique / PU</option>
+                                                            <option value="Accompagnement énergie" {% if 'Accompagnement énergie' in current_interventions %}selected{% endif %}>Accompagnement énergie</option>
+                                                            <option value="Accompagnement social juridique" {% if 'Accompagnement social juridique' in current_interventions %}selected{% endif %}>Accompagnement social juridique</option>
+                                                            <option value="Accompagnement copro" {% if 'Accompagnement copro' in current_interventions %}selected{% endif %}>Accompagnement copro</option>
+                                                            <option value="Accompagnement numérique urbanistique" {% if 'Accompagnement numérique urbanistique' in current_interventions %}selected{% endif %}>Accompagnement numérique urbanistique</option>
+                                                            <option value="Accompagnement numérique primes" {% if 'Accompagnement numérique primes' in current_interventions %}selected{% endif %}>Accompagnement numérique primes</option>
+                                                            <option value="Autres accompagnements numériques" {% if 'Autres accompagnements numériques' in current_interventions %}selected{% endif %}>Autres accompagnements numériques</option>
+                                                            <option value="Contact Homegrade" {% if 'Contact Homegrade' in current_interventions %}selected{% endif %}>Contact Homegrade</option>
+                                                            <option value="Autre" {% if 'Autre' in current_interventions %}selected{% endif %}>Autre</option>
+                                                        </select>
+                                                    </div>
+                                            </div>
+                                            
+                                            <div class="mb-4">
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Commentaire</label>
+                                                <textarea name="commentaire" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">{{ hc.commentaire or '' }}</textarea>
+                                            </div>
+
+                                            <div class="flex justify-end space-x-4">
+                                                <button type="button" onclick="toggleEditMode(this)" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md transition duration-300 flex items-center">
+                                                    <i class="fas fa-times mr-2"></i>Annuler
+                                                </button>
+                                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium transition duration-300 flex items-center">
+                                            <i class="fas fa-save mr-2"></i>Enregistrer
+                                        </button>
+                                            </div>
                                         </form>
                                     </div>
-                                    <div class="mb-2">
-                                        <span class="text-sm font-medium">Interventions:</span>
-                                        <div class="flex flex-wrap gap-1 mt-1">
-                                            {% set interventions = hc.interventions.split(',') if hc.interventions else [] %}
-                                            {% for int in interventions %}
-                                                <span class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">{{ int }}</span>
-                                            {% endfor %}
-                                        </div>
 					{% if hc.fichiers %}
 					<div class="mt-2">
 					    <span class="text-sm font-medium">Fichiers joints:</span>
@@ -533,11 +633,6 @@
 					    </div>
 					</div>
 					{% endif %}
-                                    </div>
-                                    <div>
-                                        <span class="text-sm font-medium">Commentaire:</span>
-                                        <p class="text-gray-600 text-sm mt-1">{{ hc.commentaire or 'Aucun commentaire' }}</p>
-                                    </div>
                                 </div>
                             {% endfor %}
                         {% else %}
@@ -554,7 +649,25 @@
 
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     <script>
-        
+        function toggleEditMode(button) {
+            const card = button.closest('.contact-card');
+            if (!card) return;
+            
+            const viewMode = card.querySelector('.view-mode');
+            const editMode = card.querySelector('.edit-mode');
+            
+            if (viewMode && editMode) {
+                viewMode.classList.toggle('hidden');
+                editMode.classList.toggle('hidden');
+                
+                // Scroll to show the full card when editing
+                if (!editMode.classList.contains('hidden')) {
+                    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }
+        }
+
+        // Supprimé car maintenant on utilise directement type="submit"
 
         // Initialize multiselect controls
 	new TomSelect('select[name="rue"]', {
@@ -579,6 +692,11 @@
         new TomSelect('#travaux-select', multiSelectOptions);
         new TomSelect('#primes-select', multiSelectOptions);
         new TomSelect('#interventions-select', multiSelectOptions);
+        
+        // Initialize TomSelect for edit mode interventions
+        document.querySelectorAll('.interventions-edit-select').forEach(select => {
+            new TomSelect(select, multiSelectOptions);
+        });
     </script>
     
   

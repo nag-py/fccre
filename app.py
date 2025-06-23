@@ -412,6 +412,52 @@ def supprimer_contact(contact_id):
     flash('Contact supprimé avec succès!', 'success')
     return redirect(url_for('index'))
 
+@app.route('/historique/modifier/<int:historique_id>', methods=['GET', 'POST'])
+def modifier_historique(historique_id):
+    """Modification d'un élément de l'historique des contacts"""
+    historique = HistoriqueContact.query.get_or_404(historique_id)
+    contact_id = historique.contact_id
+    
+    if request.method == 'POST':
+        # Mise à jour des données de l'historique
+        historique.date = datetime.strptime(request.form.get('date'), '%Y-%m-%d').date()
+        historique.type_contact = request.form.get('type_contact')
+        historique.interventions = ','.join(request.form.getlist('interventions')) if request.form.getlist('interventions') else ''
+        historique.commentaire = request.form.get('commentaire', '')
+        
+        # Gestion des fichiers
+        if 'fichiers' in request.files:
+            fichiers = request.files.getlist('fichiers')
+            for fichier in fichiers:
+                if fichier and fichier.filename != '' and allowed_file(fichier.filename):
+                    filename = secure_filename(fichier.filename)
+                    contact_folder = os.path.join(app.config['UPLOAD_FOLDER'], str(contact_id))
+                    if not os.path.exists(contact_folder):
+                        os.makedirs(contact_folder)
+
+                    filepath = os.path.join(contact_folder, filename)
+                    fichier.save(filepath)
+
+                    db_fichier = FichierHistorique(
+                        historique_id=historique.id,
+                        nom_fichier=filename,
+                        chemin_fichier=os.path.join(str(contact_id), filename),
+                        type_fichier=fichier.content_type if hasattr(fichier, 'content_type') else ''
+                    )
+                    db.session.add(db_fichier)
+        
+        db.session.commit()
+        flash('Entrée d\'historique modifiée avec succès!', 'success')
+        return redirect(url_for('modifier_contact', contact_id=contact_id))
+    
+    # Préparer les données pour le formulaire
+    interventions = historique.interventions.split(',') if historique.interventions else []
+    
+    return render_template('modifier_historique.html', 
+                         historique=historique,
+                         interventions=interventions,
+                         contact_id=contact_id)
+
 @app.route('/historique/supprimer/<int:historique_id>', methods=['POST'])
 def supprimer_historique(historique_id):
     """Suppression d'un élément de l'historique des contacts"""
