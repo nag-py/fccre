@@ -316,7 +316,8 @@ def nouveau_contact():
 @app.route('/contact/<int:contact_id>', methods=['GET', 'POST'])
 def modifier_contact(contact_id):
     """Page de modification d'un contact existant"""
-        # Charger la liste des rues depuis le fichier JSON
+    print(f"DEBUG: Loading template from: {os.path.abspath('templates/fiche_contact.html')}")  # Log template path
+    # Charger la liste des rues depuis le fichier JSON
     with open('rues.json', 'r', encoding='utf-8') as f:
         rues = json.load(f)
 
@@ -391,8 +392,9 @@ def modifier_contact(contact_id):
                         db.session.add(db_fichier)
                         db.session.commit()
         
+        print(f"DEBUG: Redirection vers modifier_contact avec id={contact.id}")  # Log de debug
         flash('Contact mis à jour avec succès!', 'success')
-        return redirect(url_for('index'))
+        return redirect(url_for('modifier_contact', contact_id=contact.id))
     
     # Trier les historiques du plus récent au plus ancien
     contact.historique_contacts = sorted(contact.historique_contacts, key=lambda h: h.date, reverse=True)
