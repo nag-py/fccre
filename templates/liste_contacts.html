@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-gray-50">
-    <div class="container mx-auto px-4 py-8 max-w-screen-lg">
+    <div class="container mx-auto px-4 py-8 max-w-screen-xl">
         <!-- Header -->
         <header class="mb-8">
 	    <h1 class="text-3xl font-bold text-gray-800">La Rue asbl - Fiche Stat V2025</h1>
@@ -44,7 +44,7 @@
         </div>
 
 	<!-- Statistiques -->
-<div class="grid grid-cols-3 gap-4 mb-6">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
     <div class="bg-white p-4 rounded shadow-md">
         <h2 class="text-lg font-semibold mb-2">📊 Statistiques 2025</h2>
         <ul class="text-sm text-gray-700 space-y-1">
@@ -131,6 +131,21 @@
                 <thead class="bg-gray-50">
                     <tr>
 			<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+    Nom - Prénom
+    <a href="{{ url_for('index', sort_by='nom_prenom', order='asc' if request.args.get('sort_by') != 'nom_prenom' or request.args.get('order') == 'desc' else 'desc') }}"
+       class="ml-1 text-gray-400 hover:text-gray-600">
+        {% if request.args.get('sort_by') == 'nom_prenom' %}
+            {% if request.args.get('order') == 'asc' %}
+                ▲
+            {% else %}
+                ▼
+            {% endif %}
+        {% else %}
+            ⇅
+        {% endif %}
+    </a>
+</th>
+			<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
     Rue
     <a href="{{ url_for('index', sort_by='rue', order='asc' if request.args.get('sort_by') != 'rue' or request.args.get('order') == 'desc' else 'desc') }}"
        class="ml-1 text-gray-400 hover:text-gray-600">
@@ -185,6 +200,7 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                     {% for contact in contacts %}
                     <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ contact.nom_prenom }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ contact.rue }}</td>
 			<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ contact.numero }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
