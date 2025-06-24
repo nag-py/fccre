@@ -90,3 +90,14 @@ class FichierHistorique(db.Model):
     date_upload = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relation avec l'historique
+
+
+class Feedback(db.Model):
+    __tablename__ = 'feedbacks'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    comment = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Feedback {self.id} - {self.created_at.strftime('%d/%m/%Y %H:%M')}>"

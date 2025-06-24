@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file
 from sqlalchemy import func, extract
-from models import db, Contact, HistoriqueContact, FichierHistorique
+from models import db, Contact, HistoriqueContact, FichierHistorique, Feedback
 import os
 from datetime import datetime, time
 from werkzeug.utils import secure_filename
@@ -542,6 +542,22 @@ def formulaire():
         rues = json.load(f)
     
     return render_template('templates/fiche_contact.html', rues=rues, rue_preselec=rue_preselec)
+
+@app.route('/feedback', methods=['GET', 'POST'])
+def feedback():
+    if request.method == 'POST':
+        comment = request.form.get('comment', '').strip()
+        if comment:
+            new_feedback = Feedback(comment=comment)
+            db.session.add(new_feedback)
+            db.session.commit()
+            flash('Merci pour votre suggestion !', 'success')
+            return redirect(url_for('feedback'))
+    
+    # Récupérer tous les feedbacks triés par date décroissante
+    feedbacks = Feedback.query.order_by(Feedback.created_at.desc()).all()
+    return render_template('feedback.html', feedbacks=feedbacks)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
