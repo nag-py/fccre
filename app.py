@@ -309,7 +309,7 @@ def nouveau_contact():
                         db.session.commit()
         
         flash('Contact ajouté avec succès!', 'success')
-        return redirect(url_for('index'))
+        return redirect(url_for('modifier_contact', contact_id=contact.id))
     
     return render_template('fiche_contact.html', rues=rues)
 
