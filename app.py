@@ -425,7 +425,20 @@ def modifier_historique(historique_id):
         historique.interventions = ','.join(request.form.getlist('interventions')) if request.form.getlist('interventions') else ''
         historique.commentaire = request.form.get('commentaire', '')
         
-        # Gestion des fichiers
+        # Gestion des fichiers à supprimer
+        if 'supprimer_fichiers' in request.form:
+            fichier_ids = request.form.getlist('supprimer_fichiers')
+            for fichier_id in fichier_ids:
+                fichier = FichierHistorique.query.get(fichier_id)
+                if fichier:
+                    # Supprimer le fichier du système de fichiers
+                    chemin_complet = os.path.join(app.config['UPLOAD_FOLDER'], fichier.chemin_fichier)
+                    if os.path.exists(chemin_complet):
+                        os.remove(chemin_complet)
+                    # Supprimer l'entrée de la base de données
+                    db.session.delete(fichier)
+        
+        # Gestion des nouveaux fichiers
         if 'fichiers' in request.files:
             fichiers = request.files.getlist('fichiers')
             for fichier in fichiers:
