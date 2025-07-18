@@ -1,10 +1,37 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file, current_app
 from sqlalchemy import func, extract
 from models import db, Contact, HistoriqueContact, FichierHistorique, Feedback
 import os
 from datetime import datetime, time
 from werkzeug.utils import secure_filename
 import json
+import subprocess
+
+def get_db_last_update():
+    try:
+        db_path = os.path.join(current_app.instance_path, 'renovation.db')
+        if not os.path.exists(db_path):
+            current_app.logger.warning(f"Fichier DB non trouvé: {db_path}")
+            return "Date inconnue"
+            
+        # Double méthode de vérification
+        try:
+            # Méthode 1: commande stat
+            result = subprocess.run(['stat', '-c', '%y', db_path], 
+                                  capture_output=True, text=True)
+            if result.returncode == 0:
+                return result.stdout.strip()
+        except Exception as e:
+            current_app.logger.warning(f"Erreur avec stat: {str(e)}")
+            
+        # Méthode 2: fallback avec os.path
+        timestamp = os.path.getmtime(db_path)
+        return datetime.fromtimestamp(timestamp).strftime('%d/%m/%Y à %H:%M')
+        
+    except Exception as e:
+        current_app.logger.error(f"Erreur grave: {str(e)}")
+        return "Date inconnue"
+
 
 
 # Définir le dossier d'upload
@@ -206,6 +233,7 @@ def index():
     return render_template(
         'liste_contacts.html',
         contacts=contacts,
+        last_db_update=get_db_last_update(),
         stats={
             # colonne 1 (déjà présent)
             'fiches_ouvertes_2025': fiches_ouvertes_2025,
@@ -311,7 +339,9 @@ def nouveau_contact():
         flash('Contact ajouté avec succès!', 'success')
         return redirect(url_for('modifier_contact', contact_id=contact.id))
     
-    return render_template('fiche_contact.html', rues=rues)
+    return render_template('fiche_contact.html', 
+                         rues=rues,
+                         last_db_update=get_db_last_update())
 
 @app.route('/contact/<int:contact_id>', methods=['GET', 'POST'])
 def modifier_contact(contact_id):
@@ -399,7 +429,11 @@ def modifier_contact(contact_id):
     # Trier les historiques du plus récent au plus ancien
     contact.historique_contacts = sorted(contact.historique_contacts, key=lambda h: h.date, reverse=True)
 
-    return render_template('fiche_contact.html', contact=contact, rues=rues, rue_preselec=contact.rue)        
+    return render_template('fiche_contact.html', 
+                         contact=contact, 
+                         rues=rues, 
+                         rue_preselec=contact.rue,
+                         last_db_update=get_db_last_update())        
     
 
 @app.route('/contact/supprimer/<int:contact_id>', methods=['POST'])
