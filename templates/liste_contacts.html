@@ -28,9 +28,14 @@
 
         <!-- Controls -->
         <div class="flex justify-between items-center mb-6">
-            <a href="{{ url_for('nouveau_contact') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition duration-300 flex items-center">
-                <i class="fas fa-plus mr-2"></i>Nouvelle fiche contact
-            </a>
+            <div class="flex space-x-2">
+                <a href="{{ url_for('nouveau_contact') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition duration-300 flex items-center">
+                    <i class="fas fa-plus mr-2"></i>Nouvelle fiche contact
+                </a>
+                <a href="{{ url_for('stats') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition duration-300 flex items-center">
+                    <i class="fas fa-chart-bar mr-2"></i>Stats
+                </a>
+            </div>
             
             <div class="flex space-x-4">
                 <form action="{{ url_for('index') }}" method="GET" class="flex">
