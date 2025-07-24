@@ -3,219 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Statistiques détaillées</title>
+    <title>Fiche Stat V2025</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-gray-50">
     <div class="container mx-auto px-4 py-8 max-w-screen-xl">
+        <!-- Header -->
         <header class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-800">Statistiques détaillées des fiches contact</h1>
+            <h1 class="text-3xl font-bold text-gray-800">La Rue asbl - Statistiques complètes 2025</h1>
+            <p class="text-gray-600 mt-2">Dernière mise à jour le {{ last_db_update }}</p>
             <a href="{{ url_for('index') }}" class="mt-4 inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition duration-300">
                 <i class="fas fa-arrow-left mr-2"></i>Retour à la liste
             </a>
         </header>
 
-        <!-- DEMANDEUR Section -->
-        <section class="mb-12">
-            <h2 class="text-2xl font-semibold mb-4 text-gray-800 border-b pb-2">DEMANDEUR</h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- ZONE CONCERNEE -->
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h3 class="text-xl font-medium mb-4 text-blue-600">ZONE CONCERNEE</h3>
-                    <ul class="space-y-2">
-                        {% for item, count in stats.zone_concernée.items() %}
-                        <li class="flex justify-between">
-                            <span>{{ item }}</span>
-                            <span class="font-medium">{{ count }}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
+        <!-- Statistiques -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+            <!-- Colonne 1 - Demandeur et Contact -->
+            <div class="bg-white p-4 rounded shadow-md">
+                <h2 class="text-lg font-semibold mb-2">👤 Demandeur</h2>
+                
+                {% if stats.zone_concernée %}
+                <h3 class="font-medium mt-3">📌 Zone concernée</h3>
+                <ul class="ml-4 list-disc text-sm">
+                    {% for item, count in stats.zone_concernée.items() %}
+                        <li>{{ item }} : {{ count }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
 
-                <!-- STATUT DU DEMANDEUR -->
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h3 class="text-xl font-medium mb-4 text-blue-600">STATUT DU DEMANDEUR</h3>
-                    <ul class="space-y-2">
-                        {% for item, count in stats.statut_demandeur.items() %}
-                        <li class="flex justify-between">
-                            <span>{{ item }}</span>
-                            <span class="font-medium">{{ count }}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
+                {% if stats.statut_demandeur %}
+                <h3 class="font-medium mt-3">👥 Statut du demandeur</h3>
+                <ul class="ml-4 list-disc text-sm">
+                    {% for item, count in stats.statut_demandeur.items() %}
+                        <li>{{ item }} : {{ count }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
 
-                <!-- CATEGORIE DE REVENUS -->
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h3 class="text-xl font-medium mb-4 text-blue-600">CATEGORIE DE REVENUS</h3>
-                    <ul class="space-y-2">
-                        {% for item, count in stats.categorie_revenus.items() %}
-                        <li class="flex justify-between">
-                            <span>{{ item }}</span>
-                            <span class="font-medium">{{ count }}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
+                {% if stats.categorie_revenus %}
+                <h3 class="font-medium mt-3">💰 Catégorie de revenus</h3>
+                <ul class="ml-4 list-disc text-sm">
+                    {% for item, count in stats.categorie_revenus.items() %}
+                        <li>{{ item }} : {{ count }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
             </div>
-        </section>
 
-        <!-- CONTACT Section -->
-        <section class="mb-12">
-            <h2 class="text-2xl font-semibold mb-4 text-gray-800 border-b pb-2">CONTACT</h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- NOMBRE DE DEMANDEURS -->
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h3 class="text-xl font-medium mb-4 text-blue-600">NOMBRE DE DEMANDEURS</h3>
-                    <ul class="space-y-2">
-                        <li class="flex justify-between">
-                            <span>Cette année</span>
-                            <span class="font-medium">{{ stats.nombre_demandeurs_annee }}</span>
-                        </li>
-                        <li class="flex justify-between">
-                            <span>Renouvelé</span>
-                            <span class="font-medium">{{ stats.nombre_demandeurs_renouvele }}</span>
-                        </li>
-                        <li class="flex justify-between">
-                            <span>Total</span>
-                            <span class="font-medium">{{ stats.nombre_demandeurs_total }}</span>
-                        </li>
-                    </ul>
-                </div>
+            <!-- Colonne 2 - Logement et Demandes -->
+            <div class="bg-white p-4 rounded shadow-md">
+                <h2 class="text-lg font-semibold mb-2">🏡 Logement</h2>
+                
+                {% if stats.type_bien %}
+                <h3 class="font-medium mt-3">🏘️ Type de bien</h3>
+                <ul class="ml-4 list-disc text-sm">
+                    {% for item, count in stats.type_bien.items() %}
+                        <li>{{ item }} : {{ count }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
 
-                <!-- ORIGINE DU CONTACT -->
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h3 class="text-xl font-medium mb-4 text-blue-600">ORIGINE DU CONTACT</h3>
-                    <ul class="space-y-2">
-                        {% for item, count in stats.origine_contact.items() %}
-                        <li class="flex justify-between">
-                            <span>{{ item }}</span>
-                            <span class="font-medium">{{ count }}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-        </section>
+                {% if stats.copropriete_enregistree %}
+                <h3 class="font-medium mt-3">🏢 Copropriété</h3>
+                <ul class="ml-4 list-disc text-sm">
+                    <li>Copropriété enregistrée : {{ stats.copropriete_enregistree }}</li>
+                    {% if stats.type_syndic %}
+                    <li>Type de syndic : {{ stats.type_syndic }}</li>
+                    {% endif %}
+                </ul>
+                {% endif %}
 
-        <!-- LOGEMENT Section -->
-        <section class="mb-12">
-            <h2 class="text-2xl font-semibold mb-4 text-gray-800 border-b pb-2">LOGEMENT</h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- TYPE DE BIEN -->
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h3 class="text-xl font-medium mb-4 text-blue-600">TYPE DE BIEN</h3>
-                    <ul class="space-y-2">
-                        {% for item, count in stats.type_bien.items() %}
-                        <li class="flex justify-between">
-                            <span>{{ item }}</span>
-                            <span class="font-medium">{{ count }}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-
-                <!-- COPROPRIETE -->
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h3 class="text-xl font-medium mb-4 text-blue-600">COPROPRIETE</h3>
-                    <ul class="space-y-2">
-                        <li class="flex justify-between">
-                            <span>Copropriété enregistrée</span>
-                            <span class="font-medium">{{ stats.copropriete_enregistree }}</span>
-                        </li>
-                        <li class="flex justify-between">
-                            <span>Type de syndic</span>
-                            <span class="font-medium">{{ stats.type_syndic }}</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-
-        <!-- DEMANDE D'ORIGINE Section -->
-        <section class="mb-12">
-            <h2 class="text-2xl font-semibold mb-4 text-gray-800 border-b pb-2">DEMANDE D'ORIGINE</h2>
-            
-            <div class="bg-white p-6 rounded-lg shadow-md">
-                <ul class="space-y-2">
+                {% if stats.demande_origine %}
+                <h2 class="text-lg font-semibold mb-2 mt-4">📋 Demandes</h2>
+                <h3 class="font-medium mt-3">📝 Demandes d'origine</h3>
+                <ul class="ml-4 list-disc text-sm">
                     {% for item, count in stats.demande_origine.items() %}
-                    <li class="flex justify-between">
-                        <span>{{ item }}</span>
-                        <span class="font-medium">{{ count }}</span>
-                    </li>
+                        <li>{{ item }} : {{ count }}</li>
                     {% endfor %}
                 </ul>
-            </div>
-        </section>
+                {% endif %}
 
-        <!-- THEMATIQUES ABORDEES Section -->
-        <section class="mb-12">
-            <h2 class="text-2xl font-semibold mb-4 text-gray-800 border-b pb-2">THEMATIQUES ABORDEES</h2>
-            
-            <div class="bg-white p-6 rounded-lg shadow-md">
-                <ul class="space-y-2">
+                {% if stats.thematiques_abordees %}
+                <h3 class="font-medium mt-3">🧩 Thématiques abordées</h3>
+                <ul class="ml-4 list-disc text-sm">
                     {% for item, count in stats.thematiques_abordees.items() %}
-                    <li class="flex justify-between">
-                        <span>{{ item }}</span>
-                        <span class="font-medium">{{ count }}</span>
-                    </li>
+                        <li>{{ item }} : {{ count }}</li>
                     {% endfor %}
                 </ul>
+                {% endif %}
             </div>
-        </section>
 
-        <!-- TYPE DE TRAVAUX Section -->
-        <section class="mb-12">
-            <h2 class="text-2xl font-semibold mb-4 text-gray-800 border-b pb-2">TYPE DE TRAVAUX</h2>
-            
-            <div class="bg-white p-6 rounded-lg shadow-md">
-                <ul class="space-y-2">
+            <!-- Colonne 3 - Travaux et Interventions -->
+            <div class="bg-white p-4 rounded shadow-md">
+                {% if stats.type_travaux %}
+                <h2 class="text-lg font-semibold mb-2">🔨 Travaux</h2>
+                <h3 class="font-medium mt-3">🛠️ Types de travaux</h3>
+                <ul class="ml-4 list-disc text-sm">
                     {% for item, count in stats.type_travaux.items() %}
-                    <li class="flex justify-between">
-                        <span>{{ item }}</span>
-                        <span class="font-medium">{{ count }}</span>
-                    </li>
+                        <li>{{ item }} : {{ count }}</li>
                     {% endfor %}
                 </ul>
-            </div>
-        </section>
+                {% endif %}
 
-        <!-- INTERVENTIONS REALISÉES Section -->
-        <section>
-            <h2 class="text-2xl font-semibold mb-4 text-gray-800 border-b pb-2">INTERVENTIONS REALISÉES</h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- GENERALITES -->
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h3 class="text-xl font-medium mb-4 text-blue-600">GENERALITES</h3>
-                    <ul class="space-y-2">
-                        {% for item, count in stats.interventions_generalites.items() %}
-                        <li class="flex justify-between">
-                            <span>{{ item }}</span>
-                            <span class="font-medium">{{ count }}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
+                {% if stats.interventions %}
+                <h2 class="text-lg font-semibold mb-2 mt-4">⚡ Interventions</h2>
+                <h3 class="font-medium mt-3">📊 Généralités</h3>
+                <ul class="ml-4 list-disc text-sm">
+                    {% for item, count in stats.interventions.items() %}
+                        <li>{{ item }} : {{ count }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
 
-                <!-- ENVOI VERS PERSONNES RELAIS -->
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h3 class="text-xl font-medium mb-4 text-blue-600">ENVOI VERS PERSONNES RELAIS</h3>
-                    <ul class="space-y-2">
-                        {% for item, count in stats.envoi_personnes_relais.items() %}
-                        <li class="flex justify-between">
-                            <span>{{ item }}</span>
-                            <span class="font-medium">{{ count }}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
+                {% if stats.repartition_interventions %}
+                <h3 class="font-medium mt-3">📈 Répartition</h3>
+                <ul class="ml-4 list-disc text-sm">
+                    {% for item, count in stats.repartition_interventions.items() %}
+                        <li>{{ item }} : {{ count }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+
+                {% if stats.accompagnements %}
+                <h3 class="font-medium mt-3">🔄 Accompagnements</h3>
+                <ul class="ml-4 list-disc text-sm">
+                    {% for item, count in stats.accompagnements.items() %}
+                        <li>{{ item }} : {{ count }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Résumé 2025 -->
+        <div class="bg-white p-4 rounded shadow-md mt-6">
+            <h2 class="text-lg font-semibold mb-2">📊 Résumé 2025</h2>
+            <p class="text-sm text-gray-500 mb-3">Note: Les statistiques affichées sont filtrées pour l'année 2025</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <p class="font-medium">Nouveaux dossiers : <span class="font-bold">{{ stats.fiches_ouvertes }}</span></p>
+                    <p class="font-medium">Dossiers réouverts : <span class="font-bold">{{ stats.fiches_reouvertes }}</span></p>
+                </div>
+                <div>
+                    <p class="font-medium">Contacts "Avec" : <span class="font-bold">{{ stats.contacts_A }}</span></p>
+                    <p class="font-medium">Contacts "Pour" : <span class="font-bold">{{ stats.contacts_P }}</span></p>
+                </div>
+                <div>
+                    <p class="font-medium">Total interventions : <span class="font-bold">{{ stats.total_interventions }}</span></p>
+                    <p class="font-medium">Fracture numérique : <span class="font-bold">{{ stats.fracture_numerique }}</span></p>
                 </div>
             </div>
-        </section>
+        </div>
     </div>
 </body>
 </html>
