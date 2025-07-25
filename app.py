@@ -594,48 +594,180 @@ def feedback():
 
 @app.route('/stats')
 def stats():
-    # Base query - only contacts with at least one historique_contact in 2025
-    contacts_2025 = Contact.query.join(HistoriqueContact).filter(
+    # Filtrer strictement sur date_modification en 2025 et éviter les doublons
+    contacts_2025 = Contact.query.filter(
+        extract('year', Contact.date_modification) == 2025
+    ).distinct()
+    
+    # Pour toutes les requêtes d'historique, on filtre sur date (pas date_modification)
+    historique_2025 = HistoriqueContact.query.filter(
         extract('year', HistoriqueContact.date) == 2025
     ).distinct()
+    
+    # On s'assure que toutes les stats utilisent le même filtre
+    base_query = Contact.query.filter(
+        extract('year', Contact.date_modification) == 2025
+    )
+    
+    # Mise à jour de toutes les requêtes pour utiliser le même filtre
+    zone_concernée = dict(db.session.query(
+        Contact.zones, 
+        func.count(Contact.id)
+    ).filter(
+        extract('year', Contact.date_modification) == 2025
+    ).group_by(Contact.zones).all())
+    
+    statut_demandeur = dict(db.session.query(
+        Contact.statut, 
+        func.count(Contact.id)
+    ).filter(
+        extract('year', Contact.date_modification) == 2025
+    ).group_by(Contact.statut).all())
+    
+    categorie_revenus = dict(db.session.query(
+        Contact.revenus, 
+        func.count(Contact.id)
+    ).filter(
+        extract('year', Contact.date_modification) == 2025
+    ).group_by(Contact.revenus).all())
+    
+    nombre_demandeurs_annee = base_query.count()
+    nombre_demandeurs_renouvele = base_query.filter(
+        extract('year', Contact.date_creation) < 2025
+    ).count()
+    nombre_demandeurs_total = nombre_demandeurs_annee + nombre_demandeurs_renouvele
+    
+    origine_contact = dict(db.session.query(
+        Contact.origine, 
+        func.count(Contact.id)
+    ).filter(
+        extract('year', Contact.date_modification) == 2025
+    ).group_by(Contact.origine).all())
+    
+    type_bien = dict(db.session.query(
+        Contact.type_bien, 
+        func.count(Contact.id)
+    ).filter(
+        extract('year', Contact.date_modification) == 2025
+    ).group_by(Contact.type_bien).all())
+    
+    copropriete_enregistree = base_query.filter(
+        Contact.copropriete.ilike('%enregistrée%')
+    ).count()
+    
+    type_syndic = dict(db.session.query(
+        func.substr(Contact.copropriete, 1, 20), 
+        func.count(Contact.id)
+    ).filter(
+        extract('year', Contact.date_modification) == 2025
+    ).group_by(func.substr(Contact.copropriete, 1, 20)).all())
+    
+    demande_origine = dict(db.session.query(
+        Contact.demande_initiale, 
+        func.count(Contact.id)
+    ).filter(
+        extract('year', Contact.date_modification) == 2025
+    ).group_by(Contact.demande_initiale).all())
+    
+    thematiques_abordees = {}
+    for contact in base_query.filter(Contact.thematiques != None).all():
+        for t in contact.thematiques.split(','):
+            thematiques_abordees[t.strip()] = thematiques_abordees.get(t.strip(), 0) + 1
+    
+    type_travaux = {}
+    for contact in base_query.filter(Contact.type_travaux != None).all():
+        for t in contact.type_travaux.split(','):
+            type_travaux[t.strip()] = type_travaux.get(t.strip(), 0) + 1
+    
+    interventions_generalites = {}
+    for hist in historique_2025.filter(
+        HistoriqueContact.interventions != None
+    ).all():
+        for i in hist.interventions.split(','):
+            interventions_generalites[i.strip()] = interventions_generalites.get(i.strip(), 0) + 1
+    
+    envoi_personnes_relais = {}
+    for hist in historique_2025.filter(
+        HistoriqueContact.interventions.ilike('%envoi%')
+    ).all():
+        for i in hist.interventions.split(','):
+            if 'envoi' in i.lower():
+                envoi_personnes_relais[i.strip()] = envoi_personnes_relais.get(i.strip(), 0) + 1
+
+    # Vérifier les permissions et le chemin
+    log_path = os.path.join(os.getcwd(), 'debug_stats.log')
+    print(f"DEBUG - Trying to write logs to: {log_path}")  # Log du chemin
+    
+    try:
+        # Test d'écriture
+        with open(log_path, 'w') as test_file:
+            test_file.write("Test d'écriture\n")
+    except Exception as e:
+        print(f"DEBUG - Erreur lors du test d'écriture: {str(e)}")
+    else:
+        # Écrire les logs dans un fichier
+        with open(log_path, 'w') as f:
+            # Compter le nombre total de contacts distincts pour vérification
+            total_contacts_2025 = Contact.query.filter(
+                extract('year', Contact.date_modification) == 2025
+            ).distinct().count()
+            f.write(f"DEBUG - Total contacts 2025: {total_contacts_2025}\n")
+
+            # Log des requêtes SQL
+            query = Contact.query.filter(
+                extract('year', Contact.date_modification) == 2025
+            )
+            f.write(f"DEBUG - SQL Query: {str(query)}\n")
+            
+            # Liste des IDs des contacts
+            contact_ids = [c.id for c in query.all()]
+            f.write(f"DEBUG - Contact IDs: {contact_ids}\n")
 
     # DEMANDEUR - ZONE CONCERNEE
     zone_concernée = dict(db.session.query(
         Contact.zones, 
-        func.count(Contact.id)
-    ).join(HistoriqueContact).filter(
-        extract('year', HistoriqueContact.date) == 2025
+        func.count(Contact.id.distinct())
+    ).filter(
+        extract('year', Contact.date_modification) == 2025
     ).group_by(Contact.zones).all())
     
     # DEMANDEUR - STATUT
     statut_demandeur = dict(db.session.query(
         Contact.statut, 
         func.count(Contact.id)
-    ).join(HistoriqueContact).filter(
-        extract('year', HistoriqueContact.date) == 2025
+    ).filter(
+        extract('year', Contact.date_modification) == 2025
     ).group_by(Contact.statut).all())
     
     # DEMANDEUR - CATEGORIE REVENUS
     categorie_revenus = dict(db.session.query(
         Contact.revenus, 
         func.count(Contact.id)
-    ).join(HistoriqueContact).filter(
-        extract('year', HistoriqueContact.date) == 2025
+    ).filter(
+        extract('year', Contact.date_modification) == 2025
     ).group_by(Contact.revenus).all())
     
     # CONTACT - NOMBRE DEMANDEURS
-    nombre_demandeurs_annee = contacts_2025.count()
+    nombre_demandeurs_annee = contacts_2025.distinct().count()
     nombre_demandeurs_renouvele = contacts_2025.filter(
         extract('year', Contact.date_creation) < 2025
-    ).count()
+    ).distinct().count()
     nombre_demandeurs_total = nombre_demandeurs_annee + nombre_demandeurs_renouvele
+    
+    with open('debug_stats.log', 'a') as f:
+        try:
+            f.write(f"DEBUG - Nombre demandeurs: {nombre_demandeurs_annee} nouveaux, {nombre_demandeurs_renouvele} réouverts\n")
+            f.write(f"DEBUG - Query nouveaux: {str(contacts_2025)}\n")
+            f.write(f"DEBUG - Query réouverts: {str(contacts_2025.filter(extract('year', Contact.date_creation) < 2025))}\n")
+        except Exception as e:
+            print(f"DEBUG - Erreur d'écriture dans le fichier: {str(e)}")
     
     # CONTACT - ORIGINE
     origine_contact = dict(db.session.query(
         Contact.origine, 
-        func.count(Contact.id)
-    ).join(HistoriqueContact).filter(
-        extract('year', HistoriqueContact.date) == 2025
+        func.count(Contact.id.distinct())
+    ).filter(
+        extract('year', Contact.date_modification) == 2025
     ).group_by(Contact.origine).all())
     
     # LOGEMENT - TYPE DE BIEN
@@ -696,13 +828,45 @@ def stats():
             if 'envoi' in i.lower():
                 envoi_personnes_relais[i.strip()] = envoi_personnes_relais.get(i.strip(), 0) + 1
 
+    # Calcul des contacts A et P pour 2025
+    contacts_A_2025 = HistoriqueContact.query.filter(
+        HistoriqueContact.type_contact.ilike('A%'),
+        extract('year', HistoriqueContact.date) == 2025
+    ).count()
+
+    contacts_P_2025 = HistoriqueContact.query.filter(
+        HistoriqueContact.type_contact.ilike('P%'),
+        extract('year', HistoriqueContact.date) == 2025
+    ).count()
+
+    # Calcul des interventions pour 2025
+    all_interventions_2025 = (
+        db.session.query(HistoriqueContact.interventions)
+        .filter(
+            HistoriqueContact.interventions != '',
+            extract('year', HistoriqueContact.date) == 2025
+        )
+        .all()
+    )
+    interventions_2025 = sum(
+        len(interv[0].split(',')) for interv in all_interventions_2025 if interv[0]
+    )
+
+    # Calcul de la fracture numérique pour 2025
+    nb_fracture = Contact.query.filter(
+        Contact.fracture_numerique == True,
+        extract('year', Contact.date_modification) == 2025
+    ).count()
+
     return render_template('stats.html', stats={
         'zone_concernée': zone_concernée,
         'statut_demandeur': statut_demandeur,
         'categorie_revenus': categorie_revenus,
-        'nombre_demandeurs_annee': nombre_demandeurs_annee,
-        'nombre_demandeurs_renouvele': nombre_demandeurs_renouvele,
-        'nombre_demandeurs_total': nombre_demandeurs_total,
+        'fiches_ouvertes_2025': nombre_demandeurs_annee,
+        'fiches_reouvertes_2025': nombre_demandeurs_renouvele,
+        'contacts_A_2025': contacts_A_2025,
+        'contacts_P_2025': contacts_P_2025,
+        'interventions_2025': interventions_2025,
         'origine_contact': origine_contact,
         'type_bien': type_bien,
         'copropriete_enregistree': copropriete_enregistree,
@@ -711,7 +875,8 @@ def stats():
         'thematiques_abordees': thematiques_abordees,
         'type_travaux': type_travaux,
         'interventions_generalites': interventions_generalites,
-        'envoi_personnes_relais': envoi_personnes_relais
+        'envoi_personnes_relais': envoi_personnes_relais,
+        'nb_fracture': nb_fracture
     })
 
 

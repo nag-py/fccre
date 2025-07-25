@@ -20,140 +20,82 @@
 
         <!-- Statistiques -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-            <!-- Colonne 1 - Demandeur et Contact -->
             <div class="bg-white p-4 rounded shadow-md">
-                <h2 class="text-lg font-semibold mb-2">👤 Demandeur</h2>
-                
-                {% if stats.zone_concernée %}
-                <h3 class="font-medium mt-3">📌 Zone concernée</h3>
-                <ul class="ml-4 list-disc text-sm">
-                    {% for item, count in stats.zone_concernée.items() %}
-                        <li>{{ item }} : {{ count }}</li>
-                    {% endfor %}
+                <h2 class="text-lg font-semibold mb-2">📊 Statistiques 2025</h2>
+                <ul class="text-sm text-gray-700 space-y-1">
+                    <li>🟩 Nouveaux dossiers : <strong>{{ stats.fiches_ouvertes_2025 }}</strong></li>
+                    <li>🟦 Réouverts : <strong>{{ stats.fiches_reouvertes_2025 }}</strong></li>
+                    <li>🟠 Contacts "Avec" : <strong>{{ stats.contacts_A_2025 }}</strong></li>
+                    <li>🟣 Contacts "Pour" : <strong>{{ stats.contacts_P_2025 }}</strong></li>
+                    <li>📝 Type de contacts :
+                        <ul class="ml-4 list-disc">
+                            {% for item, count in stats.top_type_contacts %}
+                                <li>{{ item }} ({{ count }})</li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    <li>🔧 Top 3 - Interventions :
+                        <ul class="ml-4 list-disc">
+                            {% for item, count in stats.top_interventions %}
+                                <li>{{ item }} ({{ count }})</li>
+                            {% endfor %}
+                            <li>Au total :  <strong>{{ stats.interventions_2025 }}</strong></li>
+                        </ul>
+                    </li>
                 </ul>
-                {% endif %}
-
-                {% if stats.statut_demandeur %}
-                <h3 class="font-medium mt-3">👥 Statut du demandeur</h3>
-                <ul class="ml-4 list-disc text-sm">
-                    {% for item, count in stats.statut_demandeur.items() %}
-                        <li>{{ item }} : {{ count }}</li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
-
-                {% if stats.categorie_revenus %}
-                <h3 class="font-medium mt-3">💰 Catégorie de revenus</h3>
-                <ul class="ml-4 list-disc text-sm">
-                    {% for item, count in stats.categorie_revenus.items() %}
-                        <li>{{ item }} : {{ count }}</li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
             </div>
 
-            <!-- Colonne 2 - Logement et Demandes -->
             <div class="bg-white p-4 rounded shadow-md">
-                <h2 class="text-lg font-semibold mb-2">🏡 Logement</h2>
-                
-                {% if stats.type_bien %}
-                <h3 class="font-medium mt-3">🏘️ Type de bien</h3>
-                <ul class="ml-4 list-disc text-sm">
-                    {% for item, count in stats.type_bien.items() %}
-                        <li>{{ item }} : {{ count }}</li>
-                    {% endfor %}
+                <h2 class="text-lg font-semibold mb-2">📌 Demandes</h2>
+                <ul class="text-sm text-gray-700 space-y-1">
+                    <li>📋 Demandes initiales :
+                        <ul class="ml-4 list-disc">
+                            {% for item, count in stats.top_demandes %}
+                                <li>{{ item }} ({{ count }})</li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    <li>🧩 Thématiques :
+                        <ul class="ml-4 list-disc">
+                            {% for item, count in stats.top_thematiques %}
+                                <li>{{ item }} ({{ count }})</li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    <li>🔨 Types de travaux :
+                        <ul class="ml-4 list-disc">
+                            {% for item, count in stats.top_travaux %}
+                                <li>{{ item }} ({{ count }})</li>
+                            {% endfor %}
+                        </ul>
+                    </li>
                 </ul>
-                {% endif %}
-
-                {% if stats.copropriete_enregistree %}
-                <h3 class="font-medium mt-3">🏢 Copropriété</h3>
-                <ul class="ml-4 list-disc text-sm">
-                    <li>Copropriété enregistrée : {{ stats.copropriete_enregistree }}</li>
-                    {% if stats.type_syndic %}
-                    <li>Type de syndic : {{ stats.type_syndic }}</li>
-                    {% endif %}
-                </ul>
-                {% endif %}
-
-                {% if stats.demande_origine %}
-                <h2 class="text-lg font-semibold mb-2 mt-4">📋 Demandes</h2>
-                <h3 class="font-medium mt-3">📝 Demandes d'origine</h3>
-                <ul class="ml-4 list-disc text-sm">
-                    {% for item, count in stats.demande_origine.items() %}
-                        <li>{{ item }} : {{ count }}</li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
-
-                {% if stats.thematiques_abordees %}
-                <h3 class="font-medium mt-3">🧩 Thématiques abordées</h3>
-                <ul class="ml-4 list-disc text-sm">
-                    {% for item, count in stats.thematiques_abordees.items() %}
-                        <li>{{ item }} : {{ count }}</li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
             </div>
 
-            <!-- Colonne 3 - Travaux et Interventions -->
             <div class="bg-white p-4 rounded shadow-md">
-                {% if stats.type_travaux %}
-                <h2 class="text-lg font-semibold mb-2">🔨 Travaux</h2>
-                <h3 class="font-medium mt-3">🛠️ Types de travaux</h3>
-                <ul class="ml-4 list-disc text-sm">
-                    {% for item, count in stats.type_travaux.items() %}
-                        <li>{{ item }} : {{ count }}</li>
-                    {% endfor %}
+                <h2 class="text-lg font-semibold mb-2">📂 Situation</h2>
+                <ul class="text-sm text-gray-700 space-y-1">
+                    <li>📊 Statut :
+                        <ul class="ml-4 list-disc">
+                            {% for item, count in stats.top_statuts %}
+                                <li>{{ item }} ({{ count }})</li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    <li>🏢 Copropriétaires : <strong>{{ stats.nb_copro }}</strong></li>
+                    <li>🌐 Fracture numérique : <strong>{{ stats.nb_fracture }}</strong></li>
+                    <li>📈 Répartition interventions :
+                        <ul class="ml-4 list-disc">
+                            {% if stats.bins_interventions %}
+                                {% for label, count in stats.bins_interventions.items() %}
+                                    <li>{{ label }} : {{ count }}</li>
+                                {% endfor %}
+                            {% else %}
+                                <li>Données non disponibles</li>
+                            {% endif %}
+                        </ul>
+                    </li>
                 </ul>
-                {% endif %}
-
-                {% if stats.interventions %}
-                <h2 class="text-lg font-semibold mb-2 mt-4">⚡ Interventions</h2>
-                <h3 class="font-medium mt-3">📊 Généralités</h3>
-                <ul class="ml-4 list-disc text-sm">
-                    {% for item, count in stats.interventions.items() %}
-                        <li>{{ item }} : {{ count }}</li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
-
-                {% if stats.repartition_interventions %}
-                <h3 class="font-medium mt-3">📈 Répartition</h3>
-                <ul class="ml-4 list-disc text-sm">
-                    {% for item, count in stats.repartition_interventions.items() %}
-                        <li>{{ item }} : {{ count }}</li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
-
-                {% if stats.accompagnements %}
-                <h3 class="font-medium mt-3">🔄 Accompagnements</h3>
-                <ul class="ml-4 list-disc text-sm">
-                    {% for item, count in stats.accompagnements.items() %}
-                        <li>{{ item }} : {{ count }}</li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Résumé 2025 -->
-        <div class="bg-white p-4 rounded shadow-md mt-6">
-            <h2 class="text-lg font-semibold mb-2">📊 Résumé 2025</h2>
-            <p class="text-sm text-gray-500 mb-3">Note: Les statistiques affichées sont filtrées pour l'année 2025</p>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <p class="font-medium">Nouveaux dossiers : <span class="font-bold">{{ stats.fiches_ouvertes }}</span></p>
-                    <p class="font-medium">Dossiers réouverts : <span class="font-bold">{{ stats.fiches_reouvertes }}</span></p>
-                </div>
-                <div>
-                    <p class="font-medium">Contacts "Avec" : <span class="font-bold">{{ stats.contacts_A }}</span></p>
-                    <p class="font-medium">Contacts "Pour" : <span class="font-bold">{{ stats.contacts_P }}</span></p>
-                </div>
-                <div>
-                    <p class="font-medium">Total interventions : <span class="font-bold">{{ stats.total_interventions }}</span></p>
-                    <p class="font-medium">Fracture numérique : <span class="font-bold">{{ stats.fracture_numerique }}</span></p>
-                </div>
             </div>
         </div>
     </div>
