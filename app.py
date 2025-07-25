@@ -119,12 +119,11 @@ def index():
         extract('year', HistoriqueContact.date) == annee
     ).count()
 
-    # 5. Top 3 type_contact
+    # 5. All type_contact
     top_type_contacts = (
         db.session.query(HistoriqueContact.type_contact, func.count().label('total'))
         .group_by(HistoriqueContact.type_contact)
         .order_by(func.count().desc())
-        .limit(3)
         .all()
     )
 
@@ -142,7 +141,7 @@ def index():
     len(interv[0].split(',')) for interv in all_interventions_2025 if interv[0])
 
 
-    # 7. Top 3 interventions (chaîne à virgules à éclater manuellement)
+    # 7. All interventions (chaîne à virgules à éclater manuellement)
     all_interventions = (
         db.session.query(HistoriqueContact.interventions)
         .filter(HistoriqueContact.interventions != '')
@@ -154,47 +153,97 @@ def index():
     for ligne in all_interventions:
         for item in ligne[0].split(','):
             interventions_counter[item.strip()] += 1
-    top_interventions = interventions_counter.most_common(3)
+    all_interventions = sorted(interventions_counter.items(), key=lambda x: x[1], reverse=True)
 
 # ---------- COLONNE 2 ----------
     contacts_2025 = Contact.query.filter(extract('year', Contact.date_modification) == annee)
 
-    # 1. Top 3 demandes initiales
+    # 1. All demandes initiales
     top_demandes = (
         contacts_2025
         .with_entities(Contact.demande_initiale, func.count().label('total'))
         .filter(Contact.demande_initiale != None, Contact.demande_initiale != '')
         .group_by(Contact.demande_initiale)
         .order_by(func.count().desc())
-        .limit(3)
         .all()
     )
 
-    # 2. Top 3 thématiques (chaînes à virgules)
+    # 2. All thématiques (chaînes à virgules)
     from collections import Counter
 
     thematique_counter = Counter()
     for c in contacts_2025.filter(Contact.thematiques != None).all():
         for t in c.thematiques.split(','):
             thematique_counter[t.strip()] += 1
-    top_thematiques = thematique_counter.most_common(3)
+    all_thematiques = sorted(thematique_counter.items(), key=lambda x: x[1], reverse=True)
 
-    # 3. Top 3 types de travaux (chaînes à virgules)
+    # 3. All types de travaux (chaînes à virgules)
     travaux_counter = Counter()
     for c in contacts_2025.filter(Contact.type_travaux != None).all():
         for t in c.type_travaux.split(','):
             travaux_counter[t.strip()] += 1
-    top_travaux = travaux_counter.most_common(3)
+    all_travaux = sorted(travaux_counter.items(), key=lambda x: x[1], reverse=True)
+
+    # 8. All zones
+    zones_counter = Counter()
+    for c in contacts_2025.filter(Contact.zones != None).all():
+        for z in c.zones.split(','):
+            zones_counter[z.strip()] += 1
+    all_zones = sorted(zones_counter.items(), key=lambda x: x[1], reverse=True)
+
+    # 9. All primes introduites
+    primes_counter = Counter()
+    for c in contacts_2025.filter(Contact.primes_introduites != None).all():
+        for p in c.primes_introduites.split(','):
+            primes_counter[p.strip()] += 1
+    all_primes = sorted(primes_counter.items(), key=lambda x: x[1], reverse=True)
+
+    # 10. Revenus distribution
+    revenus_stats = {
+        'Bas revenus': contacts_2025.filter(Contact.revenus.ilike('bas_revenus')).count(),
+        'Moyens revenus': contacts_2025.filter(Contact.revenus.ilike('moyens_revenus')).count(),
+        'Hauts revenus': contacts_2025.filter(Contact.revenus.ilike('hauts_revenus')).count(),
+        'Autres': contacts_2025.filter(Contact.revenus.ilike('autres')).count(),
+        'Inconnu': contacts_2025.filter(
+            db.or_(
+                Contact.revenus == None,
+                Contact.revenus == '',
+                Contact.revenus.ilike('%inconnu%')
+            )
+        ).count()
+    }
+
+    # 11. Unités stats
+    unites_stats = {
+        'Nb unités': contacts_2025.with_entities(func.sum(Contact.nb_unites)).scalar() or 0,
+        'Total unités': contacts_2025.with_entities(func.sum(Contact.total_unites)).scalar() or 0
+    }
+
+    # 12. Copropriété details
+    copro_details = {
+        'Oui': contacts_2025.filter(Contact.copropriete.like('%oui%')).count(),
+        'Non': contacts_2025.filter(Contact.copropriete.like('%non%')).count(),
+        'Enregistrée': contacts_2025.filter(Contact.copropriete.like('%Enregistrée%')).count(),
+        'Syndic Pro': contacts_2025.filter(Contact.copropriete.like('%Syndic Pro%')).count(),
+        'Syndic Volontaire': contacts_2025.filter(Contact.copropriete.like('%Syndic Volontaire%')).count(),
+        'Inconnu': contacts_2025.filter(
+            db.or_(
+                Contact.copropriete == None,
+                Contact.copropriete == '',
+                Contact.copropriete.ilike('%inconnu%')
+            )
+        ).count()
+    }
+
 
     # ---------- COLONNE 3 ----------
-    # 4. Top 4 statuts
+    # 4. All statuts
     top_statuts = (
         contacts_2025
         .with_entities(Contact.statut, func.count().label('total'))
         .filter(Contact.statut != None, Contact.statut != '')
         .group_by(Contact.statut)
         .order_by(func.count().desc())
-        .limit(4)
         .all()
     )
 
@@ -230,6 +279,44 @@ def index():
             bins['21+'] += 1
 
 
+    # ---------- NOUVELLES STATISTIQUES ----------
+    # 1. Origines
+    top_origines = (
+        contacts_2025
+        .with_entities(Contact.origine, func.count().label('total'))
+        .filter(Contact.origine != None, Contact.origine != '')
+        .group_by(Contact.origine)
+        .order_by(func.count().desc())
+        .all()
+    )
+
+    # 2. Futur
+    nb_futur = contacts_2025.filter(Contact.futur == True).count()
+
+    # 3. Type de bien
+    top_type_bien = (
+        contacts_2025
+        .with_entities(Contact.type_bien, func.count().label('total'))
+        .filter(Contact.type_bien != None, Contact.type_bien != '')
+        .group_by(Contact.type_bien)
+        .order_by(func.count().desc())
+        .all()
+    )
+
+
+    # 5. Composition familiale
+    top_composition = (
+        contacts_2025
+        .with_entities(Contact.composition_familiale, func.count().label('total'))
+        .filter(Contact.composition_familiale != None, Contact.composition_familiale != '')
+        .group_by(Contact.composition_familiale)
+        .order_by(func.count().desc())
+        .all()
+    )
+
+    # 6. Famille nombreuse
+    nb_famille_nombreuse = contacts_2025.filter(Contact.famille_nombreuse == True).count()
+
     return render_template(
         'liste_contacts.html',
         contacts=contacts,
@@ -242,18 +329,30 @@ def index():
             'contacts_P_2025': contacts_P_2025,
             'top_type_contacts': top_type_contacts,
             'interventions_2025': interventions_2025,
-            'top_interventions': top_interventions,
+            'all_interventions': all_interventions,
 
             # colonne 2
             'top_demandes': top_demandes,
-            'top_thematiques': top_thematiques,
-            'top_travaux': top_travaux,
+            'all_thematiques': all_thematiques,
+            'all_travaux': all_travaux,
+            'all_zones': all_zones,
+            'all_primes': all_primes,
+            'revenus_stats': revenus_stats,
+            'unites_stats': unites_stats,
 
             # colonne 3
             'top_statuts': top_statuts,
             'nb_copro': nb_copro,
             'nb_fracture': nb_fracture,
             'bins_interventions': bins,
+
+            # nouvelles stats
+            'top_origines': top_origines,
+            'nb_futur': nb_futur,
+            'top_type_bien': top_type_bien,
+            'copro_details': copro_details,
+            'top_composition': top_composition,
+            'nb_famille_nombreuse': nb_famille_nombreuse
         }
     )
 

@@ -59,19 +59,19 @@
             <li>🟦 Réouverts : <strong>{{ stats.fiches_reouvertes_2025 }}</strong></li>
             <li>🟠 Contacts "Avec" : <strong>{{ stats.contacts_A_2025 }}</strong></li>
             <li>🟣 Contacts "Pour" : <strong>{{ stats.contacts_P_2025 }}</strong></li>
-            <li>📝 Type de contacts :
+            <li>📝 Types de contacts :
                 <ul class="ml-4 list-disc">
                     {% for item, count in stats.top_type_contacts %}
                         <li>{{ item }} ({{ count }})</li>
                     {% endfor %}
                 </ul>
             </li>
-            <li>🔧 Top 3 - Interventions :
+            <li>🔧 Interventions :
                 <ul class="ml-4 list-disc">
-                    {% for item, count in stats.top_interventions %}
+                    {% for item, count in stats.all_interventions %}
                         <li>{{ item }} ({{ count }})</li>
                     {% endfor %}
-		    <li>Au total :  <strong>{{ stats.interventions_2025 }}</strong></li>
+                    <li>Au total :  <strong>{{ stats.interventions_2025 }}</strong></li>
                 </ul>
             </li>
         </ul>
@@ -82,27 +82,34 @@
 <div class="bg-white p-4 rounded shadow-md">
     <h2 class="text-lg font-semibold mb-2">📌 Demandes</h2>
     <ul class="text-sm text-gray-700 space-y-1">
-        <li>📋 Demandes initiales :
+            <li>📋 Demandes initiales :
+                <ul class="ml-4 list-disc">
+                    {% for item, count in stats.top_demandes %}
+                        <li>{{ item }} ({{ count }})</li>
+                    {% endfor %}
+                </ul>
+            </li>
+            <li>🧩 Thématiques :
             <ul class="ml-4 list-disc">
-                {% for item, count in stats.top_demandes %}
+                {% for item, count in stats.all_thematiques %}
                     <li>{{ item }} ({{ count }})</li>
                 {% endfor %}
             </ul>
         </li>
-        <li>🧩 Thématiques :
-            <ul class="ml-4 list-disc">
-                {% for item, count in stats.top_thematiques %}
-                    <li>{{ item }} ({{ count }})</li>
-                {% endfor %}
-            </ul>
-        </li>
-        <li>🔨 Types de travaux :
-            <ul class="ml-4 list-disc">
-                {% for item, count in stats.top_travaux %}
-                    <li>{{ item }} ({{ count }})</li>
-                {% endfor %}
-            </ul>
-        </li>
+            <li>🔨 Types de travaux :
+                <ul class="ml-4 list-disc">
+                    {% for item, count in stats.all_travaux %}
+                        <li>{{ item }} ({{ count }})</li>
+                    {% endfor %}
+                </ul>
+            </li>
+            <li>🏷️ Primes introduites :
+                <ul class="ml-4 list-disc">
+                    {% for item, count in stats.all_primes %}
+                        <li>{{ item }} ({{ count }})</li>
+                    {% endfor %}
+                </ul>
+            </li>
     </ul>
 </div>
 
@@ -131,6 +138,80 @@
 
 </div>
 
+        <!-- Nouvelle Section de Statistiques -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+            <!-- Colonne 1 -->
+            <div class="bg-white p-4 rounded shadow-md">
+                <h2 class="text-lg font-semibold mb-2">📌 Origine & Type</h2>
+                <ul class="text-sm text-gray-700 space-y-1">
+            <li>📍 Origines :
+                <ul class="ml-4 list-disc">
+                    {% for item, count in stats.top_origines %}
+                        <li>{{ item }} ({{ count }})</li>
+                    {% endfor %}
+                </ul>
+            </li>
+                    <li>🔮 Futur : <strong>{{ stats.nb_futur }}</strong></li>
+            <li>🏠 Types de bien :
+                <ul class="ml-4 list-disc">
+                    {% for item, count in stats.top_type_bien %}
+                        <li>{{ item }} ({{ count }})</li>
+                    {% endfor %}
+                </ul>
+            </li>
+            <li>🗺️ Zones :
+                <ul class="ml-4 list-disc">
+                    {% for item, count in stats.all_zones %}
+                        <li>{{ item }} ({{ count }})</li>
+                    {% endfor %}
+                </ul>
+            </li>
+            <li>🏢 Unités :
+                <ul class="ml-4 list-disc">
+                    <li>Nb unités: {{ stats.unites_stats['Nb unités'] }}</li>
+                    <li>Total unités: {{ stats.unites_stats['Total unités'] }}</li>
+                </ul>
+            </li>
+                </ul>
+            </div>
+
+            <!-- Colonne 2 -->
+            <div class="bg-white p-4 rounded shadow-md">
+                <h2 class="text-lg font-semibold mb-2">🏢 Copropriété</h2>
+                <ul class="text-sm text-gray-700 space-y-1">
+                    <li>Oui : <strong>{{ stats.copro_details.Oui }}</strong></li>
+                    <li>Non : <strong>{{ stats.copro_details.Non }}</strong></li>
+                    <li>Enregistrée : <strong>{{ stats.copro_details.Enregistrée }}</strong></li>
+                    <li>Syndic Pro : <strong>{{ stats.copro_details['Syndic Pro'] }}</strong></li>
+                    <li>Syndic Volontaire : <strong>{{ stats.copro_details['Syndic Volontaire'] }}</strong></li>
+                    <li>Inconnu : <strong>{{ stats.copro_details.Inconnu }}</strong></li>
+                </ul>
+            </div>
+
+            <!-- Colonne 3 -->
+            <div class="bg-white p-4 rounded shadow-md">
+                <h2 class="text-lg font-semibold mb-2">👨‍👩‍👧‍👦 Famille</h2>
+                <ul class="text-sm text-gray-700 space-y-1">
+            <li>Compositions familiales :
+                <ul class="ml-4 list-disc">
+                    {% for item, count in stats.top_composition %}
+                        <li>{{ item }} ({{ count }})</li>
+                    {% endfor %}
+                </ul>
+            </li>
+                    <li>Familles nombreuses : <strong>{{ stats.nb_famille_nombreuse }}</strong></li>
+                    <li>💰 Revenus :
+                        <ul class="ml-4 list-disc">
+                            <li>Bas revenus: {{ stats.revenus_stats['Bas revenus'] }}</li>
+                            <li>Moyens revenus: {{ stats.revenus_stats['Moyens revenus'] }}</li>
+                            <li>Hauts revenus: {{ stats.revenus_stats['Hauts revenus'] }}</li>
+                            <li>Autres: {{ stats.revenus_stats['Autres'] }}</li>
+                            <li>Inconnu: {{ stats.revenus_stats['Inconnu'] }}</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
 
         <!-- Contacts Table -->
         <div class="bg-white rounded-lg shadow-md overflow-hidden">
