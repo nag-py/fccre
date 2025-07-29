@@ -38,7 +38,7 @@
             </div>
             
             <div class="flex space-x-4">
-                <form action="{{ url_for('index') }}" method="GET" class="flex">
+                <form action="{{ url_for('index') }}#liste-contacts" method="GET" class="flex">
                     <input type="text" name="search" placeholder="Rechercher une fiche CRE" value="{{ request.args.get('search', '') }}" class="px-3 py-2 border border-gray-300 rounded-l-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     <button type="submit" class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-r-md transition duration-300">
                         <i class="fas fa-search"></i>
@@ -52,6 +52,7 @@
 
 	<!-- Statistiques -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+    <!-- Cadre 1 - Statistiques 2025 + Famille -->
     <div class="bg-white p-4 rounded shadow-md">
         <h2 class="text-lg font-semibold mb-2">📊 Statistiques 2025</h2>
         <ul class="text-sm text-gray-700 space-y-1">
@@ -75,13 +76,33 @@
                 </ul>
             </li>
         </ul>
+
+        <h2 class="text-lg font-semibold mb-2 mt-4">👨‍👩‍👧‍👦 Famille</h2>
+        <ul class="text-sm text-gray-700 space-y-1">
+            <li>Compositions familiales :
+                <ul class="ml-4 list-disc">
+                    {% for item, count in stats.top_composition %}
+                        <li>{{ item }} ({{ count }})</li>
+                    {% endfor %}
+                </ul>
+            </li>
+            <li>Familles nombreuses : <strong>{{ stats.nb_famille_nombreuse }}</strong></li>
+            <li>💰 Revenus :
+                <ul class="ml-4 list-disc">
+                    <li>Bas revenus: {{ stats.revenus_stats['Bas revenus'] }}</li>
+                    <li>Moyens revenus: {{ stats.revenus_stats['Moyens revenus'] }}</li>
+                    <li>Hauts revenus: {{ stats.revenus_stats['Hauts revenus'] }}</li>
+                    <li>Autres: {{ stats.revenus_stats['Autres'] }}</li>
+                    <li>Inconnu: {{ stats.revenus_stats['Inconnu'] }}</li>
+                </ul>
+            </li>
+        </ul>
     </div>
 
-    <!-- Colonne 2 et 3 à ajouter ici plus tard -->
-    <!-- Colonne 2 -->
-<div class="bg-white p-4 rounded shadow-md">
-    <h2 class="text-lg font-semibold mb-2">📌 Demandes</h2>
-    <ul class="text-sm text-gray-700 space-y-1">
+    <!-- Cadre 2 - Demandes -->
+    <div class="bg-white p-4 rounded shadow-md">
+        <h2 class="text-lg font-semibold mb-2">📌 Demandes</h2>
+        <ul class="text-sm text-gray-700 space-y-1">
             <li>📋 Demandes initiales :
                 <ul class="ml-4 list-disc">
                     {% for item, count in stats.top_demandes %}
@@ -90,12 +111,12 @@
                 </ul>
             </li>
             <li>🧩 Thématiques :
-            <ul class="ml-4 list-disc">
-                {% for item, count in stats.all_thematiques %}
-                    <li>{{ item }} ({{ count }})</li>
-                {% endfor %}
-            </ul>
-        </li>
+                <ul class="ml-4 list-disc">
+                    {% for item, count in stats.all_thematiques %}
+                        <li>{{ item }} ({{ count }})</li>
+                    {% endfor %}
+                </ul>
+            </li>
             <li>🔨 Types de travaux :
                 <ul class="ml-4 list-disc">
                     {% for item, count in stats.all_travaux %}
@@ -110,40 +131,33 @@
                     {% endfor %}
                 </ul>
             </li>
-    </ul>
-</div>
+        </ul>
+    </div>
 
-<!-- Colonne 3 -->
-<div class="bg-white p-4 rounded shadow-md">
-    <h2 class="text-lg font-semibold mb-2">📂 Situation</h2>
-    <ul class="text-sm text-gray-700 space-y-1">
-        <li>📊 Statut :
-            <ul class="ml-4 list-disc">
-                {% for item, count in stats.top_statuts %}
-                    <li>{{ item }} ({{ count }})</li>
-                {% endfor %}
-            </ul>
-        </li>
-        <li>🏢 Copropriétaires : <strong>{{ stats.nb_copro }}</strong></li>
-        <li>🌐 Fracture numérique : <strong>{{ stats.nb_fracture }}</strong></li>
-        <li>📈 Répartition interventions :
-            <ul class="ml-4 list-disc">
-                {% for label, count in stats.bins_interventions.items() %}
-                    <li>{{ label }} : {{ count }}</li>
-                {% endfor %}
-            </ul>
-        </li>
-    </ul>
-</div>
+    <!-- Cadre 3 - Situation + Origine & Type -->
+    <div class="bg-white p-4 rounded shadow-md">
+        <h2 class="text-lg font-semibold mb-2">📂 Situation</h2>
+        <ul class="text-sm text-gray-700 space-y-1">
+            <li>📊 Statut :
+                <ul class="ml-4 list-disc">
+                    {% for item, count in stats.top_statuts %}
+                        <li>{{ item }} ({{ count }})</li>
+                    {% endfor %}
+                </ul>
+            </li>
+            <li>🏢 Copropriétaires : <strong>{{ stats.nb_copro }}</strong></li>
+            <li>🌐 Fracture numérique : <strong>{{ stats.nb_fracture }}</strong></li>
+            <li>📈 Répartition interventions :
+                <ul class="ml-4 list-disc">
+                    {% for label, count in stats.bins_interventions.items() %}
+                        <li>{{ label }} : {{ count }}</li>
+                    {% endfor %}
+                </ul>
+            </li>
+        </ul>
 
-</div>
-
-        <!-- Nouvelle Section de Statistiques -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-            <!-- Colonne 1 -->
-            <div class="bg-white p-4 rounded shadow-md">
-                <h2 class="text-lg font-semibold mb-2">📌 Origine & Type</h2>
-                <ul class="text-sm text-gray-700 space-y-1">
+        <h2 class="text-lg font-semibold mb-2 mt-4">📍 Origine & Type</h2>
+        <ul class="text-sm text-gray-700 space-y-1">
             <li>📍 Origines :
                 <ul class="ml-4 list-disc">
                     {% for item, count in stats.top_origines %}
@@ -151,7 +165,7 @@
                     {% endfor %}
                 </ul>
             </li>
-                    <li>🔮 Futur : <strong>{{ stats.nb_futur }}</strong></li>
+            <li>🔮 Futur : <strong>{{ stats.nb_futur }}</strong></li>
             <li>🏠 Types de bien :
                 <ul class="ml-4 list-disc">
                     {% for item, count in stats.top_type_bien %}
@@ -172,49 +186,12 @@
                     <li>Total unités: {{ stats.unites_stats['Total unités'] }}</li>
                 </ul>
             </li>
-                </ul>
-            </div>
-
-            <!-- Colonne 2 -->
-            <div class="bg-white p-4 rounded shadow-md">
-                <h2 class="text-lg font-semibold mb-2">🏢 Copropriété</h2>
-                <ul class="text-sm text-gray-700 space-y-1">
-                    <li>Oui : <strong>{{ stats.copro_details.Oui }}</strong></li>
-                    <li>Non : <strong>{{ stats.copro_details.Non }}</strong></li>
-                    <li>Enregistrée : <strong>{{ stats.copro_details.Enregistrée }}</strong></li>
-                    <li>Syndic Pro : <strong>{{ stats.copro_details['Syndic Pro'] }}</strong></li>
-                    <li>Syndic Volontaire : <strong>{{ stats.copro_details['Syndic Volontaire'] }}</strong></li>
-                    <li>Inconnu : <strong>{{ stats.copro_details.Inconnu }}</strong></li>
-                </ul>
-            </div>
-
-            <!-- Colonne 3 -->
-            <div class="bg-white p-4 rounded shadow-md">
-                <h2 class="text-lg font-semibold mb-2">👨‍👩‍👧‍👦 Famille</h2>
-                <ul class="text-sm text-gray-700 space-y-1">
-            <li>Compositions familiales :
-                <ul class="ml-4 list-disc">
-                    {% for item, count in stats.top_composition %}
-                        <li>{{ item }} ({{ count }})</li>
-                    {% endfor %}
-                </ul>
-            </li>
-                    <li>Familles nombreuses : <strong>{{ stats.nb_famille_nombreuse }}</strong></li>
-                    <li>💰 Revenus :
-                        <ul class="ml-4 list-disc">
-                            <li>Bas revenus: {{ stats.revenus_stats['Bas revenus'] }}</li>
-                            <li>Moyens revenus: {{ stats.revenus_stats['Moyens revenus'] }}</li>
-                            <li>Hauts revenus: {{ stats.revenus_stats['Hauts revenus'] }}</li>
-                            <li>Autres: {{ stats.revenus_stats['Autres'] }}</li>
-                            <li>Inconnu: {{ stats.revenus_stats['Inconnu'] }}</li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-        </div>
+        </ul>
+    </div>
+</div>
 
         <!-- Contacts Table -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div id="liste-contacts" class="bg-white rounded-lg shadow-md overflow-hidden">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>

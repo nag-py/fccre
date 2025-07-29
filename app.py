@@ -79,14 +79,30 @@ def index():
     # Appliquer le filtre si un terme de recherche est fourni
     if search_term:
         like_term = f"%{search_term}%"
+        # Ajouter une jointure avec HistoriqueContact pour inclure les commentaires
+        query = query.outerjoin(HistoriqueContact)
         query = query.filter(
             db.or_(
                 Contact.rue.ilike(like_term),
                 Contact.telephone.ilike(like_term),
                 Contact.nom_prenom.ilike(like_term),
-                Contact.email.ilike(like_term)
+                Contact.email.ilike(like_term),
+                Contact.demande_initiale.ilike(like_term),
+                Contact.thematiques.ilike(like_term),
+                Contact.type_travaux.ilike(like_term),
+                Contact.primes_introduites.ilike(like_term),
+                Contact.origine.ilike(like_term),
+                Contact.statut.ilike(like_term),
+                Contact.type_bien.ilike(like_term),
+                Contact.composition_familiale.ilike(like_term),
+                Contact.copropriete.ilike(like_term),
+                Contact.zones.ilike(like_term),
+                Contact.revenus.ilike(like_term),
+                HistoriqueContact.interventions.ilike(like_term),
+                HistoriqueContact.type_contact.ilike(like_term),
+                HistoriqueContact.commentaire.ilike(like_term)
             )
-        )
+        ).distinct(Contact.id)  # Éviter les doublons
 
     # Appliquer le tri
     if order == 'asc':
