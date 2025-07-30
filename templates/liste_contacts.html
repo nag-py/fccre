@@ -32,9 +32,6 @@
                 <a href="{{ url_for('nouveau_contact') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition duration-300 flex items-center">
                     <i class="fas fa-plus mr-2"></i>Nouvelle fiche contact
                 </a>
-                <a href="{{ url_for('stats') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition duration-300 flex items-center">
-                    <i class="fas fa-chart-bar mr-2"></i>Stats
-                </a>
             </div>
             
             <div class="flex space-x-4">
@@ -75,6 +72,16 @@
                     <li>Au total :  <strong>{{ stats.interventions_2025 }}</strong></li>
                 </ul>
             </li>
+        </ul>
+
+        <h2 class="text-lg font-semibold mb-2 mt-4">🏢 Copropriétaires</h2>
+        <ul class="text-sm text-gray-700 space-y-1">
+            <li>Oui : <strong>{{ stats.copro_stats['Oui'] }}</strong></li>
+            <li>Non : <strong>{{ stats.copro_stats['Non'] }}</strong></li>
+            <li>Enregistrée : <strong>{{ stats.copro_stats['Enregistrée'] }}</strong></li>
+            <li>Syndic Pro : <strong>{{ stats.copro_stats['Syndic Pro'] }}</strong></li>
+            <li>Syndic Volontaire : <strong>{{ stats.copro_stats['Syndic Volontaire'] }}</strong></li>
+            <li>Inconnu : <strong>{{ stats.copro_stats['Inconnu'] }}</strong></li>
         </ul>
 
         <h2 class="text-lg font-semibold mb-2 mt-4">👨‍👩‍👧‍👦 Famille</h2>

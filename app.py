@@ -113,9 +113,12 @@ def index():
 
     # ---------- STATISTIQUES (1ère colonne) ----------
     annee = 2025
+    
+    # Définir contacts_2025 ici pour l'utiliser dans les statistiques
+    contacts_2025 = Contact.query.filter(extract('year', Contact.date_modification) == annee)
 
     # 1. Fiches ouvertes en 2025
-    fiches_ouvertes_2025 = Contact.query.filter(extract('year', Contact.date_creation) == annee).count()
+    fiches_ouvertes_2025 = contacts_2025.filter(extract('year', Contact.date_creation) == annee).count()
 
     # 2. Fiches réouvertes : créées avant 2025 mais modifiées en 2025
     fiches_reouvertes_2025 = Contact.query.filter(
@@ -134,6 +137,22 @@ def index():
         HistoriqueContact.type_contact.ilike('P%'),
         extract('year', HistoriqueContact.date) == annee
     ).count()
+    
+    # 8. Statistiques de copropriété pour 2025
+    copro_stats = {
+        'Oui': contacts_2025.filter(Contact.copropriete.ilike('%oui%')).count(),
+        'Non': contacts_2025.filter(Contact.copropriete.ilike('%non%')).count(),
+        'Enregistrée': contacts_2025.filter(Contact.copropriete.ilike('%enregistrée%')).count(),
+        'Syndic Pro': contacts_2025.filter(Contact.copropriete.ilike('%syndic pro%')).count(),
+        'Syndic Volontaire': contacts_2025.filter(Contact.copropriete.ilike('%syndic volontaire%')).count(),
+        'Inconnu': contacts_2025.filter(
+            db.or_(
+                Contact.copropriete == None,
+                Contact.copropriete == '',
+                Contact.copropriete.ilike('%inconnu%')
+            )
+        ).count()
+    }
 
     # 5. All type_contact
     top_type_contacts = (
@@ -172,8 +191,6 @@ def index():
     all_interventions = sorted(interventions_counter.items(), key=lambda x: x[1], reverse=True)
 
 # ---------- COLONNE 2 ----------
-    contacts_2025 = Contact.query.filter(extract('year', Contact.date_modification) == annee)
-
     # 1. All demandes initiales
     top_demandes = (
         contacts_2025
@@ -264,7 +281,7 @@ def index():
     )
 
     # 5. Nombre de copropriétaires
-    nb_copro = contacts_2025.filter(Contact.copropriete.ilike('oui')).count()
+    nb_copro = contacts_2025.filter(Contact.copropriete.ilike('%oui%')).count()
 
     # 6. Fracture numérique
     nb_fracture = contacts_2025.filter(Contact.fracture_numerique == True).count()
@@ -366,7 +383,7 @@ def index():
             'top_origines': top_origines,
             'nb_futur': nb_futur,
             'top_type_bien': top_type_bien,
-            'copro_details': copro_details,
+            'copro_stats': copro_stats,  # Nouvelle statistique
             'top_composition': top_composition,
             'nb_famille_nombreuse': nb_famille_nombreuse
         }
